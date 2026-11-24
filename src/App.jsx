@@ -266,7 +266,7 @@ export default function App() {
     loadAllData();
 
     const channel = supabase
-      .channel('h10-fyb-sync-v8')
+      .channel('h10-fyb-sync-v9')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, () => loadAllData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'complaints' }, () => loadAllData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'calendar_events' }, () => loadAllData())
@@ -701,7 +701,7 @@ export default function App() {
     }
   }
 
-  // SALONES
+  // SALONES -> SE AÑADE DIRECTAMENTE AL CALENDARIO PARA EL DÍA DEL EVENTO
   async function handleAddBanquetEvent(e) {
     e.preventDefault();
     if (!banquetName.trim()) return;
@@ -719,15 +719,18 @@ export default function App() {
         ? `Falta por montar · Pendiente: ${pendingExtra}`
         : 'Falta por montar';
 
+    const cleanEventName = banquetName.trim();
+    const cleanPax = Number(paxCount) || 0;
+
     const { data, error } = await supabase
       .from('banquet_events')
       .insert([
         {
           event_date: banquetDate,
           salon_name: salonName,
-          event_name: banquetName.trim(),
+          event_name: cleanEventName,
           start_time: startTime,
-          pax: Number(paxCount) || 0,
+          pax: cleanPax,
           setup_type: setupType,
           setup_status: combinedStatus,
           allergens_notes: allergensNotes.trim() || null,
@@ -744,7 +747,42 @@ export default function App() {
 
     if (!error && data) {
       setBanquetEvents((prev) => [...prev, data]);
-      await addLog(`Creó evento (${banquetDate})`, `${banquetName.trim()} · ${salonName} (${paxCount} PAX)`);
+
+      const calTitle = `${salonName} (${startTime}) · ${cleanEventName} (${cleanPax} PAX)`;
+      const calDetailsParts = [`Montaje: ${setupType}`, `Estado: ${combinedStatus}`];
+      if (allergensNotes.trim()) calDetailsParts.push(`Alérgenos: ${allergensNotes.trim()}`);
+      if (extrasNotes.trim()) calDetailsParts.push(`Extras: ${extrasNotes.trim()}`);
+      if (lastMinuteNotes.trim()) calDetailsParts.push(`Última hora: ${lastMinuteNotes.trim()}`);
+
+      const { data: calData, error: calError } = await supabase
+        .from('calendar_events')
+        .insert([
+          {
+            event_date: banquetDate,
+            outlet: 'Salones',
+            title: calTitle,
+            details: calDetailsParts.join(' · '),
+            created_by: actor,
+          },
+        ])
+        .select()
+        .single();
+
+      if (!calError && calData) {
+        setEvents((prev) => [...prev, calData]);
+      }
+
+      const [evYear, evMonth] = banquetDate.split('-').map(Number);
+      if (evYear && evMonth) {
+        setCalViewYear(evYear);
+        setCalViewMonth(evMonth - 1);
+        setCalendarDate(banquetDate);
+      }
+
+      await addLog(
+        `Creó evento y añadió al calendario (${banquetDate})`,
+        `${cleanEventName} · ${salonName} (${cleanPax} PAX)`
+      );
       setOpenSalonCards((prev) => ({ ...prev, [salonName]: true }));
       setBanquetName('');
       setAllergensNotes('');
@@ -809,12 +847,26 @@ export default function App() {
 
   async function deleteBanquetEvent(ev) {
     setBanquetEvents((prev) => prev.filter((item) => item.id !== ev.id));
+
+    const matchingCal = events.filter(
+      (c) =>
+        c.event_date === ev.event_date &&
+        c.outlet === 'Salones' &&
+        c.title.includes(ev.event_name)
+    );
+
+    if (matchingCal.length > 0) {
+      const idsToDelete = matchingCal.map((m) => m.id);
+      setEvents((prev) => prev.filter((c) => !idsToDelete.includes(c.id)));
+      await supabase.from('calendar_events').delete().in('id', idsToDelete);
+    }
+
     const { error } = await supabase.from('banquet_events').delete().eq('id', ev.id);
     if (error) {
       alert(`No se pudo borrar: ${error.message}`);
       loadAllData();
     } else {
-      await addLog('Eliminó evento', `${ev.event_name} [${ev.salon_name}]`);
+      await addLog('Eliminó evento y su aviso de calendario', `${ev.event_name} [${ev.salon_name}]`);
       await loadAllData();
     }
   }
@@ -945,7 +997,6 @@ export default function App() {
   const tomorrowBanquetsPendingMount = banquetEvents.filter(
     (b) => b.event_date === tomorrowStr && !isSalonReady(b)
   );
-  const todayBanquets = banquetEvents.filter((b) => b.event_date === todayStr);
 
   const todayCalendarNotices = events.filter((ev) => ev.event_date === todayStr);
   const tomorrowCalendarNotices = events.filter((ev) => ev.event_date === tomorrowStr);
@@ -955,7 +1006,6 @@ export default function App() {
     return c.status !== 'cerrada' && cDate === todayStr;
   });
 
-  // Todo lo escrito en el día (todayStr) para Resumen Diario
   const todayPendingItems = tasks.filter(
     (t) =>
       t.section === 'pending' &&
@@ -1050,10 +1100,6 @@ export default function App() {
     return dateMatch && matchesSearch(`${ev.title} ${ev.details || ''} ${ev.outlet} ${ev.event_date}`);
   });
 
-  const openIncidencesCount = incidences.filter((i) => i.status !== 'resuelta').length;
-  const openRoomRequestsCount = roomRequests.filter((r) => r.status !== 'atendida').length;
-  const openComplaintsCount = complaints.filter((c) => c.status !== 'cerrada').length;
-
   const firstDayOfMonthObj = new Date(calViewYear, calViewMonth, 1);
   const daysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate();
   const startOffset = (firstDayOfMonthObj.getDay() + 6) % 7;
@@ -1107,7 +1153,6 @@ export default function App() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 pt-4 space-y-4">
-        {/* AVISOS SINCRONIZADOS DE CALENDARIO */}
         {(todayCalendarNotices.length > 0 || tomorrowCalendarNotices.length > 0) && (
           <div className="bg-amber-50 border-2 border-slate-950 rounded-2xl p-3.5 space-y-2">
             <div className="flex items-center justify-between gap-2">
@@ -1139,7 +1184,6 @@ export default function App() {
           </div>
         )}
 
-        {/* AVISO DE QUEJAS ACTIVAS DURANTE TODO EL DÍA */}
         {activeDayComplaintsAlerts.length > 0 && activeTab !== 'salones' && (
           <div className="bg-amber-300 border-2 border-slate-950 rounded-2xl p-3.5 space-y-1.5">
             <div className="flex items-center justify-between gap-2">
@@ -1164,7 +1208,6 @@ export default function App() {
           </div>
         )}
 
-        {/* SALONES POR MONTAR PARA MAÑANA */}
         {tomorrowBanquetsPendingMount.length > 0 && (
           <div className="bg-amber-100 border-2 border-slate-950 rounded-2xl p-3.5 space-y-1.5">
             <div className="flex items-center justify-between gap-2">
@@ -1227,7 +1270,6 @@ export default function App() {
           </div>
         )}
 
-        {/* PUNTOS DE VENTA */}
         <div className="flex gap-2 overflow-x-auto pb-1">
           {OUTLETS.map((outlet) => {
             const active = selectedOutlet === outlet;
@@ -1250,7 +1292,6 @@ export default function App() {
           })}
         </div>
 
-        {/* BUSCADOR Y FILTRO */}
         <div className="flex flex-col sm:flex-row gap-2">
           <div className="relative flex-1">
             <Search className="w-4 h-4 text-slate-600 absolute left-3 top-2.5" />
@@ -1274,7 +1315,6 @@ export default function App() {
           </button>
         </div>
 
-        {/* NAVEGACIÓN PRINCIPAL */}
         <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5 bg-amber-50 p-1.5 rounded-2xl border-2 border-slate-950">
           <button
             onClick={() => setActiveTab('resumen')}
@@ -1385,7 +1425,6 @@ export default function App() {
           </button>
         </div>
 
-        {/* QUEJAS/VIP EN TODOS LOS APARTADOS MENOS EN SALONES */}
         {showComplaintsInCurrentView && activeTab !== 'complaints' && (
           <div className="bg-amber-50 border-2 border-slate-950 rounded-2xl px-4 py-2.5 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 text-xs font-bold text-slate-950">
@@ -1404,7 +1443,7 @@ export default function App() {
           </div>
         )}
 
-        {/* RESUMEN DIARIO CON TODO LO ESCRITO EN EL DÍA: PENDIENTES, QUEJAS, INCIDENCIAS Y HABITACIONES */}
+        {/* RESUMEN DIARIO */}
         {activeTab === 'resumen' && (
           <div className="space-y-4">
             <div className="bg-amber-50 border-2 border-slate-950 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -1462,7 +1501,6 @@ export default function App() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-              {/* 1. PENDIENTES ESCRITOS HOY */}
               <div className="bg-white border-2 border-slate-950 rounded-2xl p-4 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xs font-black uppercase tracking-wider text-slate-950 flex items-center gap-1.5">
@@ -1504,7 +1542,6 @@ export default function App() {
                 )}
               </div>
 
-              {/* 2. QUEJAS ESCRITAS HOY */}
               <div className="bg-white border-2 border-slate-950 rounded-2xl p-4 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xs font-black uppercase tracking-wider text-slate-950 flex items-center gap-1.5">
@@ -1546,7 +1583,6 @@ export default function App() {
                 )}
               </div>
 
-              {/* 3. INCIDENCIAS ESCRITAS HOY */}
               <div className="bg-white border-2 border-slate-950 rounded-2xl p-4 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xs font-black uppercase tracking-wider text-slate-950 flex items-center gap-1.5">
@@ -1585,7 +1621,6 @@ export default function App() {
                 )}
               </div>
 
-              {/* 4. HABITACIONES ESCRITAS HOY */}
               <div className="bg-white border-2 border-slate-950 rounded-2xl p-4 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xs font-black uppercase tracking-wider text-slate-950 flex items-center gap-1.5">
@@ -1772,7 +1807,7 @@ export default function App() {
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 className="text-xs font-black uppercase tracking-wider text-slate-950">
-                  Nuevo Evento en Salón
+                  Nuevo Evento en Salón (se añade al calendario del día)
                 </h2>
                 <input
                   type="date"
@@ -1908,7 +1943,7 @@ export default function App() {
                   disabled={uploadingFile}
                   className="bg-slate-950 hover:bg-slate-800 text-amber-400 font-black px-4 py-2 rounded-xl text-xs border-2 border-slate-950"
                 >
-                  {uploadingFile ? 'Subiendo archivo...' : 'Guardar evento en salón'}
+                  {uploadingFile ? 'Subiendo archivo...' : 'Guardar evento y añadir al calendario'}
                 </button>
               </div>
             </form>
