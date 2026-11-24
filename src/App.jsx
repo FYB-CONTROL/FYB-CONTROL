@@ -127,7 +127,7 @@ export default function App() {
   const [phaseFilter, setPhaseFilter] = useState('all');
   const [selectedDate, setSelectedDate] = useState(() => toLocalDateStr(new Date()));
 
-  // Quejas / VIP (con habitación, queja y día activo)
+  // Quejas / VIP
   const [recordType, setRecordType] = useState('queja');
   const [complaintDate, setComplaintDate] = useState(() => toLocalDateStr(new Date()));
   const [roomNumber, setRoomNumber] = useState('');
@@ -147,7 +147,7 @@ export default function App() {
   const [reqText, setReqText] = useState('');
   const [reqNotes, setReqNotes] = useState('');
 
-  // Eventos / Salones con cuadros desplegables
+  // SALONES: crear evento + cambios de última hora + cosas pendientes
   const [banquetDate, setBanquetDate] = useState(() => toLocalDateStr(new Date()));
   const [openSalonCards, setOpenSalonCards] = useState({ 'Salón Ronda': true });
   const [salonName, setSalonName] = useState(SALONS[0]);
@@ -159,6 +159,7 @@ export default function App() {
   const [extrasNotes, setExtrasNotes] = useState('');
   const [lastMinuteChange, setLastMinuteChange] = useState(false);
   const [lastMinuteNotes, setLastMinuteNotes] = useState('');
+  const [salonPendingNotes, setSalonPendingNotes] = useState('');
   const [banquetFile, setBanquetFile] = useState(null);
 
   // Calendario independiente clicable por día
@@ -251,7 +252,7 @@ export default function App() {
     loadAllData();
 
     const channel = supabase
-      .channel('h10-fyb-control-v3')
+      .channel('h10-fyb-control-v5')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, loadAllData)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'complaints' }, loadAllData)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'calendar_events' }, loadAllData)
@@ -678,12 +679,15 @@ export default function App() {
     }
   }
 
-  // SALONES
+  // SALONES: crear evento con cambios de última hora y cosas pendientes
   async function handleAddBanquetEvent(e) {
     e.preventDefault();
     if (!banquetName.trim()) return;
     const actor = profileName || session.user.email;
     const attachment = await uploadAttachment(banquetFile, 'eventos');
+
+    const hasLastMinute = lastMinuteChange || !!lastMinuteNotes.trim();
+    const pendingText = salonPendingNotes.trim() || null;
 
     const { data, error } = await supabase
       .from('banquet_events')
@@ -695,10 +699,10 @@ export default function App() {
           start_time: startTime,
           pax: Number(paxCount) || 0,
           setup_type: setupType,
-          setup_status: 'Pendiente',
+          setup_status: pendingText ? `Pendiente: ${pendingText}` : 'Pendiente',
           allergens_notes: allergensNotes.trim() || null,
           extras_notes: extrasNotes.trim() || null,
-          last_minute_change: lastMinuteChange,
+          last_minute_change: hasLastMinute,
           last_minute_notes: lastMinuteNotes.trim() || null,
           attachment_url: attachment.url,
           attachment_name: attachment.name,
@@ -717,34 +721,38 @@ export default function App() {
       setExtrasNotes('');
       setLastMinuteChange(false);
       setLastMinuteNotes('');
+      setSalonPendingNotes('');
       setBanquetFile(null);
     }
   }
 
-  async function setBanquetQuickMode(ev, mode) {
-    // mode: 'ultima_hora' | 'pendiente'
-    const isLastMinute = mode === 'ultima_hora';
-    const nextStatus = isLastMinute ? 'Última hora' : 'Pendiente';
-
+  async function updateBanquetSalonItem(ev, field, value) {
+    const updatedValue = value;
     setBanquetEvents((prev) =>
-      prev.map((item) =>
-        item.id === ev.id
-          ? { ...item, last_minute_change: isLastMinute, setup_status: nextStatus }
-          : item
-      )
+      prev.map((item) => {
+        if (item.id !== ev.id) return item;
+        if (field === 'last_minute') {
+          return {
+            ...item,
+            last_minute_change: true,
+            last_minute_notes: updatedValue,
+          };
+        }
+        return {
+          ...item,
+          setup_status: updatedValue,
+        };
+      })
     );
 
-    const { error } = await supabase
-      .from('banquet_events')
-      .update({
-        last_minute_change: isLastMinute,
-        setup_status: nextStatus,
-      })
-      .eq('id', ev.id);
+    const payload =
+      field === 'last_minute'
+        ? { last_minute_change: true, last_minute_notes: updatedValue }
+        : { setup_status: updatedValue };
 
-    if (!error) {
-      await addLog(`Salón marcado: ${nextStatus}`, `${ev.event_name} [${ev.salon_name}]`);
-    } else {
+    const { error } = await supabase.from('banquet_events').update(payload).eq('id', ev.id);
+    if (error) {
+      alert(`No se pudo actualizar: ${error.message}`);
       loadAllData();
     }
   }
@@ -885,7 +893,6 @@ export default function App() {
   const tomorrowBanquetsToReview = banquetEvents.filter((b) => b.event_date === tomorrowStr);
   const todayBanquets = banquetEvents.filter((b) => b.event_date === todayStr);
 
-  // Avisos activos de quejas durante el día completo de su fecha
   const activeDayComplaintsAlerts = complaints.filter((c) => {
     const cDate = c.complaint_date || todayStr;
     return c.status !== 'cerrada' && cDate === todayStr;
@@ -946,7 +953,9 @@ export default function App() {
   const banquetsForDate = banquetEvents.filter(
     (b) =>
       b.event_date === banquetDate &&
-      matchesSearch(`${b.salon_name} ${b.event_name} ${b.last_minute_notes || ''}`)
+      matchesSearch(
+        `${b.salon_name} ${b.event_name} ${b.last_minute_notes || ''} ${b.setup_status || ''}`
+      )
   );
 
   const visibleCalendarEvents = events.filter((ev) => {
@@ -958,10 +967,9 @@ export default function App() {
   const openRoomRequestsCount = roomRequests.filter((r) => r.status !== 'atendida').length;
   const openComplaintsCount = complaints.filter((c) => c.status !== 'cerrada').length;
 
-  // Días del mes para el calendario clicable
   const firstDayOfMonthObj = new Date(calViewYear, calViewMonth, 1);
   const daysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate();
-  const startOffset = (firstDayOfMonthObj.getDay() + 6) % 7; // Lunes = 0
+  const startOffset = (firstDayOfMonthObj.getDay() + 6) % 7;
   const calendarCells = [];
   for (let i = 0; i < startOffset; i++) calendarCells.push(null);
   for (let d = 1; d <= daysInMonth; d++) {
@@ -976,7 +984,6 @@ export default function App() {
     setCalViewMonth(next.getMonth());
   }
 
-  // En todos los apartados menos Salones se muestra el acceso rápido a Quejas/VIP
   const showComplaintsInCurrentView = activeTab !== 'salones';
 
   return (
@@ -1285,7 +1292,7 @@ export default function App() {
           </button>
         </div>
 
-        {/* ATAJO QUEJAS/VIP EN TODOS LOS APARTADOS MENOS EN SALONES */}
+        {/* QUEJAS/VIP EN TODOS LOS APARTADOS MENOS EN SALONES */}
         {showComplaintsInCurrentView && activeTab !== 'complaints' && (
           <div className="bg-amber-50 border-2 border-slate-950 rounded-2xl px-4 py-2.5 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 text-xs font-bold text-slate-950">
@@ -1559,7 +1566,7 @@ export default function App() {
           </div>
         )}
 
-        {/* SALONES: AL HACER CLICK EN EL RECUADRO SOLO APARECE CAMBIOS DE ÚLTIMA HORA Y PENDIENTE */}
+        {/* SALONES: CREAR EVENTO + CAMBIOS DE ÚLTIMA HORA Y COSAS PENDIENTES */}
         {activeTab === 'salones' && (
           <div className="space-y-4">
             <form
@@ -1644,17 +1651,43 @@ export default function App() {
                 />
               </div>
 
-              <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                <label className="flex items-center gap-2 text-xs font-black text-slate-950 cursor-pointer">
+              {/* RECUADROS PARA AÑADIR CAMBIOS DE ÚLTIMA HORA Y COSAS PENDIENTES */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                <div className="bg-amber-300/70 border-2 border-slate-950 rounded-xl p-2.5 space-y-1.5">
+                  <label className="flex items-center gap-2 text-xs font-black text-slate-950 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={lastMinuteChange}
+                      onChange={(e) => setLastMinuteChange(e.target.checked)}
+                      className="w-4 h-4 accent-slate-950"
+                    />
+                    <span>Cambios de última hora</span>
+                  </label>
                   <input
-                    type="checkbox"
-                    checked={lastMinuteChange}
-                    onChange={(e) => setLastMinuteChange(e.target.checked)}
-                    className="w-4 h-4 accent-slate-950"
+                    type="text"
+                    value={lastMinuteNotes}
+                    onChange={(e) => {
+                      setLastMinuteNotes(e.target.value);
+                      if (e.target.value.trim()) setLastMinuteChange(true);
+                    }}
+                    placeholder="Escribe aquí los cambios de última hora..."
+                    className="w-full bg-white border-2 border-slate-950 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-950 placeholder:text-slate-500"
                   />
-                  <span>Cambios de última hora</span>
-                </label>
+                </div>
 
+                <div className="bg-white border-2 border-slate-950 rounded-xl p-2.5 space-y-1.5">
+                  <span className="block text-xs font-black text-slate-950">Pendiente</span>
+                  <input
+                    type="text"
+                    value={salonPendingNotes}
+                    onChange={(e) => setSalonPendingNotes(e.target.value)}
+                    placeholder="Escribe aquí las cosas pendientes por hacer..."
+                    className="w-full bg-amber-50 border-2 border-slate-950 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-950 placeholder:text-slate-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
                 <label className="flex items-center gap-2 text-xs font-bold text-slate-950 bg-white border-2 border-slate-950 px-3 py-1.5 rounded-xl cursor-pointer hover:bg-amber-300">
                   <Paperclip className="w-3.5 h-3.5" />
                   <span>{banquetFile ? banquetFile.name : 'Adjuntar archivo o foto'}</span>
@@ -1665,27 +1698,18 @@ export default function App() {
                     className="hidden"
                   />
                 </label>
+
+                <button
+                  type="submit"
+                  disabled={uploadingFile}
+                  className="bg-slate-950 hover:bg-slate-800 text-amber-400 font-black px-4 py-2 rounded-xl text-xs border-2 border-slate-950"
+                >
+                  {uploadingFile ? 'Subiendo archivo...' : 'Guardar evento en salón'}
+                </button>
               </div>
-
-              {lastMinuteChange && (
-                <input
-                  type="text"
-                  value={lastMinuteNotes}
-                  onChange={(e) => setLastMinuteNotes(e.target.value)}
-                  placeholder="Detalle del cambio de última hora..."
-                  className="w-full bg-amber-300 border-2 border-slate-950 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-950 placeholder:text-slate-700"
-                />
-              )}
-
-              <button
-                type="submit"
-                disabled={uploadingFile}
-                className="w-full bg-slate-950 hover:bg-slate-800 text-amber-400 font-black py-2.5 rounded-xl text-xs border-2 border-slate-950"
-              >
-                {uploadingFile ? 'Subiendo archivo...' : 'Guardar evento en salón'}
-              </button>
             </form>
 
+            {/* RECUADROS DE SALONES: AL HACER CLICK SE MUESTRAN CAMBIOS DE ÚLTIMA HORA Y PENDIENTE */}
             <div className="space-y-3">
               {SALONS.map((salon) => {
                 const isOpen = !!openSalonCards[salon];
@@ -1723,9 +1747,8 @@ export default function App() {
                       )}
                     </button>
 
-                    {/* AL HACER CLICK EN EL RECUADRO SOLO APARECE CAMBIOS DE ÚLTIMA HORA Y PENDIENTE */}
                     {isOpen && (
-                      <div className="p-4 border-t-2 border-slate-950 bg-amber-50/50 space-y-2.5">
+                      <div className="p-4 border-t-2 border-slate-950 bg-amber-50/50 space-y-3">
                         <div className="grid grid-cols-2 gap-2">
                           <div className="bg-amber-400 border-2 border-slate-950 rounded-xl px-3 py-2 text-center font-black text-xs text-slate-950">
                             Cambios de última hora
@@ -1743,7 +1766,7 @@ export default function App() {
                           salonEvents.map((ev) => (
                             <div
                               key={ev.id}
-                              className="bg-white border-2 border-slate-950 rounded-xl p-3 space-y-2"
+                              className="bg-white border-2 border-slate-950 rounded-xl p-3 space-y-2.5"
                             >
                               <div className="flex flex-wrap items-center justify-between gap-2">
                                 <div className="flex items-center gap-2">
@@ -1752,53 +1775,65 @@ export default function App() {
                                   </span>
                                   <span className="text-xs font-bold text-slate-950 flex items-center gap-1">
                                     <Users className="w-3.5 h-3.5" />
-                                    {ev.pax} PAX
+                                    {ev.pax} PAX · {ev.setup_type}
                                   </span>
                                 </div>
 
-                                <div className="flex items-center gap-1.5">
-                                  <button
-                                    type="button"
-                                    onClick={() => setBanquetQuickMode(ev, 'ultima_hora')}
-                                    className={`text-[11px] font-black px-2.5 py-1 rounded-lg border-2 border-slate-950 ${
-                                      ev.last_minute_change
-                                        ? 'bg-amber-400 text-slate-950'
-                                        : 'bg-white text-slate-950 hover:bg-amber-100'
-                                    }`}
-                                  >
-                                    Cambios de última hora
-                                  </button>
-
-                                  <button
-                                    type="button"
-                                    onClick={() => setBanquetQuickMode(ev, 'pendiente')}
-                                    className={`text-[11px] font-black px-2.5 py-1 rounded-lg border-2 border-slate-950 ${
-                                      !ev.last_minute_change
-                                        ? 'bg-slate-950 text-amber-400'
-                                        : 'bg-white text-slate-950 hover:bg-amber-100'
-                                    }`}
-                                  >
-                                    Pendiente
-                                  </button>
-
-                                  <button
-                                    type="button"
-                                    onClick={() => deleteBanquetEvent(ev)}
-                                    className="text-slate-950 hover:bg-amber-400 p-1.5 rounded-lg border border-slate-950 bg-amber-100"
-                                    title="Borrar evento"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
-                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => deleteBanquetEvent(ev)}
+                                  className="text-slate-950 hover:bg-amber-400 p-1.5 rounded-lg border border-slate-950 bg-amber-100"
+                                  title="Borrar evento"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
                               </div>
 
                               <p className="text-sm font-black text-slate-950">{ev.event_name}</p>
 
-                              {ev.last_minute_change && ev.last_minute_notes && (
-                                <p className="text-xs font-bold text-slate-950 bg-amber-300 border border-slate-950 rounded-lg px-2.5 py-1.5">
-                                  Cambios de última hora: {ev.last_minute_notes}
+                              {ev.allergens_notes && (
+                                <p className="text-xs font-bold text-slate-950 bg-amber-100 border border-slate-950 rounded-lg px-2.5 py-1">
+                                  Alérgenos / dietas: {ev.allergens_notes}
                                 </p>
                               )}
+
+                              {ev.extras_notes && (
+                                <p className="text-xs font-semibold text-slate-800 bg-slate-100 border border-slate-950 rounded-lg px-2.5 py-1">
+                                  Material / extras: {ev.extras_notes}
+                                </p>
+                              )}
+
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                                <div className="bg-amber-100 border border-slate-950 rounded-lg p-2 space-y-1">
+                                  <span className="block text-[11px] font-black text-slate-950">
+                                    Cambios de última hora
+                                  </span>
+                                  <input
+                                    type="text"
+                                    defaultValue={ev.last_minute_notes || ''}
+                                    onBlur={(e) =>
+                                      updateBanquetSalonItem(ev, 'last_minute', e.target.value)
+                                    }
+                                    placeholder="Añadir cambio de última hora..."
+                                    className="w-full bg-white border border-slate-950 rounded px-2 py-1 text-xs font-semibold text-slate-950"
+                                  />
+                                </div>
+
+                                <div className="bg-amber-50 border border-slate-950 rounded-lg p-2 space-y-1">
+                                  <span className="block text-[11px] font-black text-slate-950">
+                                    Pendiente
+                                  </span>
+                                  <input
+                                    type="text"
+                                    defaultValue={ev.setup_status || 'Pendiente'}
+                                    onBlur={(e) =>
+                                      updateBanquetSalonItem(ev, 'pendiente', e.target.value)
+                                    }
+                                    placeholder="Añadir pendiente..."
+                                    className="w-full bg-white border border-slate-950 rounded px-2 py-1 text-xs font-semibold text-slate-950"
+                                  />
+                                </div>
+                              </div>
 
                               <AttachmentPreview
                                 url={ev.attachment_url}
@@ -2054,7 +2089,7 @@ export default function App() {
           </div>
         )}
 
-        {/* QUEJAS / VIP: NÚMERO DE HABITACIÓN, QUEJA Y DÍA COMPLETO ACTIVO */}
+        {/* QUEJAS / VIP */}
         {activeTab === 'complaints' && (
           <div className="space-y-4">
             <form
@@ -2309,7 +2344,7 @@ export default function App() {
           </div>
         )}
 
-        {/* PENDIENTES (SIN CONTADOR FANTASMA DE URGENTES) */}
+        {/* PENDIENTES */}
         {activeTab === 'pending' && (
           <div className="space-y-3.5">
             <div className="bg-amber-50 border-2 border-slate-950 rounded-2xl p-3.5 flex items-center justify-between gap-3">
