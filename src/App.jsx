@@ -83,6 +83,16 @@ function toLocalDateStr(dateObj) {
   return `${y}-${m}-${d}`;
 }
 
+function isSameLocalDay(isoOrDateStr, targetDayStr) {
+  if (!isoOrDateStr) return false;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(isoOrDateStr)) {
+    return isoOrDateStr === targetDayStr;
+  }
+  const parsed = new Date(isoOrDateStr);
+  if (Number.isNaN(parsed.getTime())) return false;
+  return toLocalDateStr(parsed) === targetDayStr;
+}
+
 function isSalonReady(ev) {
   const st = (ev.setup_status || '').toLowerCase();
   return st.includes('terminado') || st.includes('montado') || st.includes('listo');
@@ -256,7 +266,7 @@ export default function App() {
     loadAllData();
 
     const channel = supabase
-      .channel('h10-fyb-sync-v7')
+      .channel('h10-fyb-sync-v8')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, () => loadAllData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'complaints' }, () => loadAllData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'calendar_events' }, () => loadAllData())
@@ -932,7 +942,6 @@ export default function App() {
     !searchQuery.trim() ||
     (text && text.toLowerCase().includes(searchQuery.trim().toLowerCase()));
 
-  // Solo salones que faltan por montar para mañana (excluye terminados/montados)
   const tomorrowBanquetsPendingMount = banquetEvents.filter(
     (b) => b.event_date === tomorrowStr && !isSalonReady(b)
   );
@@ -945,6 +954,36 @@ export default function App() {
     const cDate = c.complaint_date || todayStr;
     return c.status !== 'cerrada' && cDate === todayStr;
   });
+
+  // Todo lo escrito en el día (todayStr) para Resumen Diario
+  const todayPendingItems = tasks.filter(
+    (t) =>
+      t.section === 'pending' &&
+      matchesOutlet(t.outlet) &&
+      (isSameLocalDay(t.due_date, todayStr) || isSameLocalDay(t.created_at, todayStr)) &&
+      matchesSearch(`${t.title} ${t.notes || ''} ${t.outlet}`)
+  );
+
+  const todayComplaintsItems = complaints.filter(
+    (c) =>
+      matchesOutlet(c.outlet) &&
+      (isSameLocalDay(c.complaint_date, todayStr) || isSameLocalDay(c.created_at, todayStr)) &&
+      matchesSearch(`${c.room_number} ${c.complaint_text} ${c.manager_response || ''} ${c.outlet}`)
+  );
+
+  const todayIncidencesItems = incidences.filter(
+    (inc) =>
+      matchesOutlet(inc.outlet) &&
+      isSameLocalDay(inc.created_at, todayStr) &&
+      matchesSearch(`${inc.title} ${inc.details || ''} ${inc.outlet}`)
+  );
+
+  const todayRoomRequestsItems = roomRequests.filter(
+    (r) =>
+      matchesOutlet(r.outlet) &&
+      (isSameLocalDay(r.request_date, todayStr) || isSameLocalDay(r.created_at, todayStr)) &&
+      matchesSearch(`${r.room_number} ${r.request_text} ${r.notes || ''} ${r.outlet}`)
+  );
 
   const filteredHandovers = handovers.filter(
     (h) =>
@@ -1125,7 +1164,7 @@ export default function App() {
           </div>
         )}
 
-        {/* SALONES POR MONTAR PARA MAÑANA (SOLO LOS NO TERMINADOS) */}
+        {/* SALONES POR MONTAR PARA MAÑANA */}
         {tomorrowBanquetsPendingMount.length > 0 && (
           <div className="bg-amber-100 border-2 border-slate-950 rounded-2xl p-3.5 space-y-1.5">
             <div className="flex items-center justify-between gap-2">
@@ -1365,16 +1404,16 @@ export default function App() {
           </div>
         )}
 
-        {/* RESUMEN DIARIO */}
+        {/* RESUMEN DIARIO CON TODO LO ESCRITO EN EL DÍA: PENDIENTES, QUEJAS, INCIDENCIAS Y HABITACIONES */}
         {activeTab === 'resumen' && (
           <div className="space-y-4">
             <div className="bg-amber-50 border-2 border-slate-950 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-black uppercase tracking-wider text-slate-950">
-                  Resumen Diario Operativo · {DAY_NAMES[dayOfWeek]} {today.toLocaleDateString('es-ES')}
+                  Resumen Diario del Día ({todayStr}) · {selectedOutlet}
                 </p>
                 <p className="text-sm text-slate-900 font-bold mt-0.5">
-                  Hola {profileName}, estado del turno al entrar.
+                  Todo lo anotado hoy en Pendientes, Quejas, Incidencias y Habitaciones.
                 </p>
               </div>
               <button
@@ -1387,96 +1426,200 @@ export default function App() {
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               <button
-                onClick={() => setActiveTab('salones')}
+                onClick={() => {
+                  setSelectedDate(todayStr);
+                  setActiveTab('pending');
+                }}
                 className="bg-white hover:bg-amber-50 border-2 border-slate-950 rounded-2xl p-3 text-left transition"
               >
-                <p className="text-[11px] font-bold text-slate-700">Eventos hoy</p>
-                <p className="text-2xl font-black text-slate-950 mt-0.5">{todayBanquets.length}</p>
+                <p className="text-[11px] font-bold text-slate-700">Pendientes hoy</p>
+                <p className="text-2xl font-black text-slate-950 mt-0.5">{todayPendingItems.length}</p>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('complaints')}
+                className="bg-amber-300 hover:bg-amber-400 border-2 border-slate-950 rounded-2xl p-3 text-left transition"
+              >
+                <p className="text-[11px] font-black text-slate-950">Quejas hoy</p>
+                <p className="text-2xl font-black text-slate-950 mt-0.5">{todayComplaintsItems.length}</p>
               </button>
 
               <button
                 onClick={() => setActiveTab('incidencias')}
                 className="bg-white hover:bg-amber-50 border-2 border-slate-950 rounded-2xl p-3 text-left transition"
               >
-                <p className="text-[11px] font-bold text-slate-700">Incidencias abiertas</p>
-                <p className="text-2xl font-black text-slate-950 mt-0.5">{openIncidencesCount}</p>
+                <p className="text-[11px] font-bold text-slate-700">Incidencias hoy</p>
+                <p className="text-2xl font-black text-slate-950 mt-0.5">{todayIncidencesItems.length}</p>
               </button>
 
               <button
                 onClick={() => setActiveTab('habitaciones')}
                 className="bg-white hover:bg-amber-50 border-2 border-slate-950 rounded-2xl p-3 text-left transition"
               >
-                <p className="text-[11px] font-bold text-slate-700">Peticiones hab.</p>
-                <p className="text-2xl font-black text-slate-950 mt-0.5">{openRoomRequestsCount}</p>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('complaints')}
-                className="bg-amber-400 hover:bg-amber-300 border-2 border-slate-950 rounded-2xl p-3 text-left transition"
-              >
-                <p className="text-[11px] font-black text-slate-950">Quejas / VIP</p>
-                <p className="text-2xl font-black text-slate-950 mt-0.5">{openComplaintsCount}</p>
+                <p className="text-[11px] font-bold text-slate-700">Habitaciones hoy</p>
+                <p className="text-2xl font-black text-slate-950 mt-0.5">{todayRoomRequestsItems.length}</p>
               </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              {/* 1. PENDIENTES ESCRITOS HOY */}
               <div className="bg-white border-2 border-slate-950 rounded-2xl p-4 space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-black uppercase tracking-wider text-slate-950">
-                    Quejas y avisos activos hoy
+                  <h3 className="text-xs font-black uppercase tracking-wider text-slate-950 flex items-center gap-1.5">
+                    <CalendarClock className="w-4 h-4" />
+                    <span>Pendientes del día ({todayPendingItems.length})</span>
                   </h3>
                   <button
-                    onClick={() => setActiveTab('complaints')}
+                    onClick={() => {
+                      setSelectedDate(todayStr);
+                      setActiveTab('pending');
+                    }}
                     className="text-[11px] font-black underline text-slate-950"
                   >
-                    Ver todas
+                    Ir a Pendientes
                   </button>
                 </div>
 
-                {activeDayComplaintsAlerts.length === 0 ? (
-                  <p className="text-xs text-slate-600">Sin avisos de quejas activos para hoy.</p>
+                {todayPendingItems.length === 0 ? (
+                  <p className="text-xs text-slate-600">No hay pendientes escritos hoy.</p>
                 ) : (
-                  activeDayComplaintsAlerts.map((c) => (
+                  todayPendingItems.map((t) => (
                     <div
-                      key={c.id}
-                      className="bg-amber-300 border-2 border-slate-950 rounded-xl p-2.5 text-xs text-slate-950"
+                      key={t.id}
+                      className={`border-2 border-slate-950 rounded-xl p-2.5 text-xs text-slate-950 ${
+                        t.completed ? 'bg-slate-100 opacity-70' : 'bg-amber-50'
+                      }`}
                     >
-                      <p className="font-black">
-                        Hab. {c.room_number} · {c.outlet} ({c.complaint_date || todayStr})
-                      </p>
-                      <p className="font-bold mt-0.5">{c.complaint_text}</p>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-black">
+                          [{t.outlet}] {t.title}
+                        </span>
+                        <span className="text-[10px] font-black px-2 py-0.5 rounded bg-slate-950 text-amber-400">
+                          {t.completed ? 'Hecho' : 'Pendiente'}
+                        </span>
+                      </div>
+                      {t.notes && <p className="text-slate-700 font-medium mt-0.5">{t.notes}</p>}
                     </div>
                   ))
                 )}
               </div>
 
+              {/* 2. QUEJAS ESCRITAS HOY */}
               <div className="bg-white border-2 border-slate-950 rounded-2xl p-4 space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-black uppercase tracking-wider text-slate-950">
-                    Salones por montar mañana ({tomorrowStr})
+                  <h3 className="text-xs font-black uppercase tracking-wider text-slate-950 flex items-center gap-1.5">
+                    <MessageSquareWarning className="w-4 h-4" />
+                    <span>Quejas / VIP del día ({todayComplaintsItems.length})</span>
                   </h3>
                   <button
-                    onClick={() => setActiveTab('salones')}
+                    onClick={() => setActiveTab('complaints')}
                     className="text-[11px] font-black underline text-slate-950"
                   >
-                    Abrir salones
+                    Ir a Quejas/VIP
                   </button>
                 </div>
 
-                {tomorrowBanquetsPendingMount.length === 0 ? (
-                  <p className="text-xs text-slate-600">No hay salones pendientes de montar para mañana.</p>
+                {todayComplaintsItems.length === 0 ? (
+                  <p className="text-xs text-slate-600">No hay quejas registradas hoy.</p>
                 ) : (
-                  tomorrowBanquetsPendingMount.map((ev) => (
+                  todayComplaintsItems.map((c) => (
                     <div
-                      key={ev.id}
-                      className="bg-amber-50 border-2 border-slate-950 rounded-xl p-2.5 text-xs text-slate-950"
+                      key={c.id}
+                      className={`border-2 border-slate-950 rounded-xl p-2.5 text-xs text-slate-950 ${
+                        c.status === 'cerrada' ? 'bg-slate-100 opacity-70' : 'bg-amber-300'
+                      }`}
                     >
-                      <p className="font-black">
-                        {ev.event_date} · {ev.start_time} · {ev.salon_name}
-                      </p>
-                      <p className="font-bold mt-0.5">
-                        {ev.event_name} ({ev.pax} PAX · {ev.setup_status})
-                      </p>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-black">
+                          Hab. {c.room_number} · {c.outlet} ({c.record_type})
+                        </span>
+                        <span className="text-[10px] font-black px-2 py-0.5 rounded bg-slate-950 text-amber-300">
+                          {c.status}
+                        </span>
+                      </div>
+                      <p className="font-bold mt-0.5">{c.complaint_text}</p>
+                      {c.manager_response && (
+                        <p className="text-[11px] font-semibold mt-0.5">Gestión: {c.manager_response}</p>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* 3. INCIDENCIAS ESCRITAS HOY */}
+              <div className="bg-white border-2 border-slate-950 rounded-2xl p-4 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-slate-950 flex items-center gap-1.5">
+                    <AlertOctagon className="w-4 h-4" />
+                    <span>Incidencias del día ({todayIncidencesItems.length})</span>
+                  </h3>
+                  <button
+                    onClick={() => setActiveTab('incidencias')}
+                    className="text-[11px] font-black underline text-slate-950"
+                  >
+                    Ir a Incidencias
+                  </button>
+                </div>
+
+                {todayIncidencesItems.length === 0 ? (
+                  <p className="text-xs text-slate-600">No hay incidencias registradas hoy.</p>
+                ) : (
+                  todayIncidencesItems.map((inc) => (
+                    <div
+                      key={inc.id}
+                      className={`border-2 border-slate-950 rounded-xl p-2.5 text-xs text-slate-950 ${
+                        inc.status === 'resuelta' ? 'bg-slate-100 opacity-70' : 'bg-amber-100'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-black">
+                          [{inc.outlet}] {inc.title}
+                        </span>
+                        <span className="text-[10px] font-black px-2 py-0.5 rounded bg-slate-950 text-amber-400">
+                          {inc.severity} · {inc.status}
+                        </span>
+                      </div>
+                      {inc.details && <p className="text-slate-800 font-medium mt-0.5">{inc.details}</p>}
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* 4. HABITACIONES ESCRITAS HOY */}
+              <div className="bg-white border-2 border-slate-950 rounded-2xl p-4 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-slate-950 flex items-center gap-1.5">
+                    <DoorOpen className="w-4 h-4" />
+                    <span>Habitaciones del día ({todayRoomRequestsItems.length})</span>
+                  </h3>
+                  <button
+                    onClick={() => setActiveTab('habitaciones')}
+                    className="text-[11px] font-black underline text-slate-950"
+                  >
+                    Ir a Habitaciones
+                  </button>
+                </div>
+
+                {todayRoomRequestsItems.length === 0 ? (
+                  <p className="text-xs text-slate-600">No hay peticiones de habitaciones hoy.</p>
+                ) : (
+                  todayRoomRequestsItems.map((r) => (
+                    <div
+                      key={r.id}
+                      className={`border-2 border-slate-950 rounded-xl p-2.5 text-xs text-slate-950 ${
+                        r.status === 'atendida' ? 'bg-slate-100 opacity-70' : 'bg-amber-50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-black">
+                          Hab. {r.room_number} · {r.outlet}
+                        </span>
+                        <span className="text-[10px] font-black px-2 py-0.5 rounded bg-slate-950 text-amber-400">
+                          {r.status}
+                        </span>
+                      </div>
+                      <p className="font-bold mt-0.5">{r.request_text}</p>
+                      {r.notes && <p className="text-slate-700 font-medium mt-0.5">{r.notes}</p>}
                     </div>
                   ))
                 )}
