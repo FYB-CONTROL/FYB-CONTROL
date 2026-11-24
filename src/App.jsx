@@ -17,7 +17,6 @@ import {
   BedDouble,
   Sparkles,
   Users,
-  CloudRain,
   Utensils,
   ArrowRightCircle,
   Search,
@@ -98,7 +97,6 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('resumen');
   const [searchQuery, setSearchQuery] = useState('');
   const [onlyOpenFilter, setOnlyOpenFilter] = useState(false);
-  const [weatherPlanB, setWeatherPlanB] = useState(false);
   const [previewImageUrl, setPreviewImageUrl] = useState(null);
   const [uploadingFile, setUploadingFile] = useState(false);
 
@@ -147,7 +145,7 @@ export default function App() {
   const [reqText, setReqText] = useState('');
   const [reqNotes, setReqNotes] = useState('');
 
-  // SALONES: crear evento + cambios de última hora + cosas pendientes
+  // SALONES
   const [banquetDate, setBanquetDate] = useState(() => toLocalDateStr(new Date()));
   const [openSalonCards, setOpenSalonCards] = useState({ 'Salón Ronda': true });
   const [salonName, setSalonName] = useState(SALONS[0]);
@@ -162,7 +160,7 @@ export default function App() {
   const [salonPendingNotes, setSalonPendingNotes] = useState('');
   const [banquetFile, setBanquetFile] = useState(null);
 
-  // Calendario independiente clicable por día
+  // Calendario clicable por día
   const nowObj = new Date();
   const [calendarDate, setCalendarDate] = useState(() => toLocalDateStr(nowObj));
   const [calViewYear, setCalViewYear] = useState(nowObj.getFullYear());
@@ -179,7 +177,8 @@ export default function App() {
 
   const isFirstOfMonth = today.getDate() === 1;
   const dayOfWeek = today.getDay();
-  const isOrderDay = dayOfWeek === 0 || dayOfWeek === 2 || dayOfWeek === 4;
+  // Días de pedidos: Domingo (0), Lunes (1) y Miércoles (3)
+  const isOrderDay = dayOfWeek === 0 || dayOfWeek === 1 || dayOfWeek === 3;
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -237,14 +236,14 @@ export default function App() {
       supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(60),
     ]);
 
-    if (tasksRes.data) setTasks(tasksRes.data);
-    if (complaintsRes.data) setComplaints(complaintsRes.data);
-    if (eventsRes.data) setEvents(eventsRes.data);
-    if (banquetsRes.data) setBanquetEvents(banquetsRes.data);
-    if (handoversRes.data) setHandovers(handoversRes.data);
-    if (incidencesRes.data) setIncidences(incidencesRes.data);
-    if (roomReqRes.data) setRoomRequests(roomReqRes.data);
-    if (logsRes.data) setLogs(logsRes.data);
+    setTasks(tasksRes.data || []);
+    setComplaints(complaintsRes.data || []);
+    setEvents(eventsRes.data || []);
+    setBanquetEvents(banquetsRes.data || []);
+    setHandovers(handoversRes.data || []);
+    setIncidences(incidencesRes.data || []);
+    setRoomRequests(roomReqRes.data || []);
+    setLogs(logsRes.data || []);
   }
 
   useEffect(() => {
@@ -252,7 +251,7 @@ export default function App() {
     loadAllData();
 
     const channel = supabase
-      .channel('h10-fyb-control-v5')
+      .channel('h10-fyb-sync-all')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, loadAllData)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'complaints' }, loadAllData)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'calendar_events' }, loadAllData)
@@ -317,13 +316,21 @@ export default function App() {
   }
 
   async function addLog(action, target) {
-    await supabase.from('audit_logs').insert([
-      {
-        user_name: profileName || session.user.email,
-        action,
-        target,
-      },
-    ]);
+    const { data } = await supabase
+      .from('audit_logs')
+      .insert([
+        {
+          user_name: profileName || session.user.email,
+          action,
+          target,
+        },
+      ])
+      .select()
+      .single();
+
+    if (data) {
+      setLogs((prev) => [data, ...prev].slice(0, 60));
+    }
   }
 
   const activeOutletForWrite = selectedOutlet === 'Todo F&B' ? 'Thalassa' : selectedOutlet;
@@ -679,7 +686,7 @@ export default function App() {
     }
   }
 
-  // SALONES: crear evento con cambios de última hora y cosas pendientes
+  // SALONES
   async function handleAddBanquetEvent(e) {
     e.preventDefault();
     if (!banquetName.trim()) return;
@@ -727,28 +734,27 @@ export default function App() {
   }
 
   async function updateBanquetSalonItem(ev, field, value) {
-    const updatedValue = value;
     setBanquetEvents((prev) =>
       prev.map((item) => {
         if (item.id !== ev.id) return item;
         if (field === 'last_minute') {
           return {
             ...item,
-            last_minute_change: true,
-            last_minute_notes: updatedValue,
+            last_minute_change: Boolean(value.trim()),
+            last_minute_notes: value,
           };
         }
         return {
           ...item,
-          setup_status: updatedValue,
+          setup_status: value,
         };
       })
     );
 
     const payload =
       field === 'last_minute'
-        ? { last_minute_change: true, last_minute_notes: updatedValue }
-        : { setup_status: updatedValue };
+        ? { last_minute_change: Boolean(value.trim()), last_minute_notes: value }
+        : { setup_status: value };
 
     const { error } = await supabase.from('banquet_events').update(payload).eq('id', ev.id);
     if (error) {
@@ -768,7 +774,7 @@ export default function App() {
     }
   }
 
-  // CALENDARIO INDEPENDIENTE
+  // CALENDARIO CLICABLE POR DÍA
   async function handleAddCalendarEvent(e) {
     e.preventDefault();
     if (!eventTitle.trim() || !calendarDate) return;
@@ -890,8 +896,12 @@ export default function App() {
     !searchQuery.trim() ||
     (text && text.toLowerCase().includes(searchQuery.trim().toLowerCase()));
 
+  // Sincronización en tiempo real de avisos superiores según eventos vigentes en BD
   const tomorrowBanquetsToReview = banquetEvents.filter((b) => b.event_date === tomorrowStr);
   const todayBanquets = banquetEvents.filter((b) => b.event_date === todayStr);
+
+  const todayCalendarNotices = events.filter((ev) => ev.event_date === todayStr);
+  const tomorrowCalendarNotices = events.filter((ev) => ev.event_date === tomorrowStr);
 
   const activeDayComplaintsAlerts = complaints.filter((c) => {
     const cDate = c.complaint_date || todayStr;
@@ -1005,19 +1015,6 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setWeatherPlanB(!weatherPlanB)}
-              className={`px-2.5 py-1.5 rounded-xl text-[11px] font-bold border-2 flex items-center gap-1 transition ${
-                weatherPlanB
-                  ? 'bg-amber-400 border-slate-950 text-slate-950'
-                  : 'bg-white border-slate-950 text-slate-950 hover:bg-amber-50'
-              }`}
-              title="Activar aviso Plan B por lluvia/viento"
-            >
-              <CloudRain className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Plan B Clima</span>
-            </button>
-
             <span className="text-xs bg-amber-300 px-3 py-1.5 rounded-xl border-2 border-slate-950 text-slate-950 font-black">
               {profileName}
             </span>
@@ -1033,6 +1030,38 @@ export default function App() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 pt-4 space-y-4">
+        {/* AVISOS SINCRONIZADOS DE CALENDARIO (HOY Y MAÑANA) */}
+        {(todayCalendarNotices.length > 0 || tomorrowCalendarNotices.length > 0) && (
+          <div className="bg-amber-50 border-2 border-slate-950 rounded-2xl p-3.5 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-xs font-black text-slate-950 uppercase tracking-wide">
+                <CalendarDays className="w-4 h-4 text-slate-950 shrink-0" />
+                <span>Avisos de Calendario Sincronizados</span>
+              </div>
+              <button
+                onClick={() => setActiveTab('calendar')}
+                className="text-[11px] font-black bg-slate-950 text-amber-400 px-2.5 py-1 rounded-lg"
+              >
+                Abrir Calendario
+              </button>
+            </div>
+            <div className="space-y-1">
+              {todayCalendarNotices.map((ev) => (
+                <p key={ev.id} className="text-xs font-bold text-slate-950">
+                  • <strong>HOY ({ev.event_date})</strong> · {ev.title}{' '}
+                  {ev.details ? `— ${ev.details}` : ''}
+                </p>
+              ))}
+              {tomorrowCalendarNotices.map((ev) => (
+                <p key={ev.id} className="text-xs font-semibold text-slate-900">
+                  • <strong>MAÑANA ({ev.event_date})</strong> · {ev.title}{' '}
+                  {ev.details ? `— ${ev.details}` : ''}
+                </p>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* AVISO DE QUEJAS ACTIVAS DURANTE TODO EL DÍA */}
         {activeDayComplaintsAlerts.length > 0 && activeTab !== 'salones' && (
           <div className="bg-amber-300 border-2 border-slate-950 rounded-2xl p-3.5 space-y-1.5">
@@ -1058,13 +1087,13 @@ export default function App() {
           </div>
         )}
 
-        {/* AVISO 1 DÍA ANTES PARA REVISAR SALONES */}
+        {/* AVISO SINCRONIZADO DE EVENTOS DE SALONES PARA MAÑANA */}
         {tomorrowBanquetsToReview.length > 0 && (
           <div className="bg-amber-100 border-2 border-slate-950 rounded-2xl p-3.5 space-y-1.5">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 text-xs font-black text-slate-950 uppercase tracking-wide">
                 <BellRing className="w-4 h-4 text-slate-950 shrink-0" />
-                <span>Revisión previa de salones · Eventos para mañana ({tomorrowStr})</span>
+                <span>Eventos de Salones para mañana ({tomorrowStr})</span>
               </div>
               <button
                 onClick={() => {
@@ -1073,13 +1102,13 @@ export default function App() {
                 }}
                 className="text-[11px] font-black text-amber-300 bg-slate-950 hover:bg-slate-800 px-2.5 py-1 rounded-lg"
               >
-                Revisar salones mañana
+                Ver Salones
               </button>
             </div>
             <div className="space-y-1">
               {tomorrowBanquetsToReview.map((ev) => (
                 <p key={ev.id} className="text-xs font-semibold text-slate-950">
-                  • Revisar <strong>{ev.salon_name}</strong> ({ev.start_time} · {ev.pax} PAX) —{' '}
+                  • <strong>{ev.salon_name}</strong> ({ev.start_time} · {ev.pax} PAX) —{' '}
                   <span className="font-black underline">{ev.event_name}</span>
                   {ev.last_minute_change ? ' [CAMBIO ÚLTIMA HORA]' : ''}
                 </p>
@@ -1088,22 +1117,9 @@ export default function App() {
           </div>
         )}
 
-        {(isFirstOfMonth || isOrderDay || weatherPlanB) && (
+        {/* AVISOS DE DÍA 1 DE MES Y DÍAS DE PEDIDOS (DOMINGO, LUNES Y MIÉRCOLES) */}
+        {(isFirstOfMonth || isOrderDay) && (
           <div className="space-y-2">
-            {weatherPlanB && (
-              <div className="bg-amber-400 border-2 border-slate-950 rounded-2xl p-3.5 flex items-start gap-3">
-                <CloudRain className="w-5 h-5 text-slate-950 shrink-0 mt-0.5" />
-                <div className="text-xs text-slate-950">
-                  <p className="font-black uppercase tracking-wide">
-                    PLAN B CLIMA ACTIVADO · Terrazas / Pool-Side / Chill-Out
-                  </p>
-                  <p className="font-semibold mt-0.5">
-                    Revisar traslado de montajes exteriores a salones interiores y recoger cojines/parasoles.
-                  </p>
-                </div>
-              </div>
-            )}
-
             {isFirstOfMonth && (
               <div className="bg-amber-200 border-2 border-slate-950 rounded-2xl p-3.5 flex items-start gap-3">
                 <BellRing className="w-5 h-5 text-slate-950 shrink-0 mt-0.5" />
@@ -1119,14 +1135,15 @@ export default function App() {
             )}
 
             {isOrderDay && (
-              <div className="bg-amber-100 border-2 border-slate-950 rounded-2xl p-3.5 flex items-start gap-3">
+              <div className="bg-amber-300 border-2 border-slate-950 rounded-2xl p-3.5 flex items-start gap-3">
                 <BellRing className="w-5 h-5 text-slate-950 shrink-0 mt-0.5" />
                 <div className="text-xs text-slate-950">
                   <p className="font-black uppercase tracking-wide">
                     Hoy es {DAY_NAMES[dayOfWeek]} · Día de Pedidos
                   </p>
                   <p className="font-semibold mt-0.5">
-                    Revisar stock bajo / 86&apos;d y lanzar <strong>pedidos</strong> (Domingo, Martes y Jueves).
+                    Aviso de pedidos: hoy toca hacer pedidos (los pedidos se hacen los{' '}
+                    <strong>domingos, lunes y miércoles</strong>).
                   </p>
                 </div>
               </div>
@@ -1566,7 +1583,7 @@ export default function App() {
           </div>
         )}
 
-        {/* SALONES: CREAR EVENTO + CAMBIOS DE ÚLTIMA HORA Y COSAS PENDIENTES */}
+        {/* SALONES */}
         {activeTab === 'salones' && (
           <div className="space-y-4">
             <form
@@ -1651,7 +1668,6 @@ export default function App() {
                 />
               </div>
 
-              {/* RECUADROS PARA AÑADIR CAMBIOS DE ÚLTIMA HORA Y COSAS PENDIENTES */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
                 <div className="bg-amber-300/70 border-2 border-slate-950 rounded-xl p-2.5 space-y-1.5">
                   <label className="flex items-center gap-2 text-xs font-black text-slate-950 cursor-pointer">
@@ -1709,7 +1725,6 @@ export default function App() {
               </div>
             </form>
 
-            {/* RECUADROS DE SALONES: AL HACER CLICK SE MUESTRAN CAMBIOS DE ÚLTIMA HORA Y PENDIENTE */}
             <div className="space-y-3">
               {SALONS.map((salon) => {
                 const isOpen = !!openSalonCards[salon];
