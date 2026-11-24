@@ -83,6 +83,11 @@ function toLocalDateStr(dateObj) {
   return `${y}-${m}-${d}`;
 }
 
+function isSalonReady(ev) {
+  const st = (ev.setup_status || '').toLowerCase();
+  return st.includes('terminado') || st.includes('montado') || st.includes('listo');
+}
+
 export default function App() {
   const [session, setSession] = useState(null);
   const [profileName, setProfileName] = useState('');
@@ -153,6 +158,7 @@ export default function App() {
   const [startTime, setStartTime] = useState('13:30');
   const [paxCount, setPaxCount] = useState('40');
   const [setupType, setSetupType] = useState('Banquete');
+  const [salonMountState, setSalonMountState] = useState('Falta por montar');
   const [allergensNotes, setAllergensNotes] = useState('');
   const [extrasNotes, setExtrasNotes] = useState('');
   const [lastMinuteChange, setLastMinuteChange] = useState(false);
@@ -177,7 +183,6 @@ export default function App() {
 
   const isFirstOfMonth = today.getDate() === 1;
   const dayOfWeek = today.getDay();
-  // Días de pedidos: Domingo (0), Lunes (1) y Miércoles (3)
   const isOrderDay = dayOfWeek === 0 || dayOfWeek === 1 || dayOfWeek === 3;
 
   useEffect(() => {
@@ -251,15 +256,15 @@ export default function App() {
     loadAllData();
 
     const channel = supabase
-      .channel('h10-fyb-sync-all')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, loadAllData)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'complaints' }, loadAllData)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'calendar_events' }, loadAllData)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'banquet_events' }, loadAllData)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'shift_handovers' }, loadAllData)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'incidences' }, loadAllData)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'room_requests' }, loadAllData)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'audit_logs' }, loadAllData)
+      .channel('h10-fyb-sync-v7')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, () => loadAllData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'complaints' }, () => loadAllData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'calendar_events' }, () => loadAllData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'banquet_events' }, () => loadAllData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'shift_handovers' }, () => loadAllData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'incidences' }, () => loadAllData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'room_requests' }, () => loadAllData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'audit_logs' }, () => loadAllData())
       .subscribe();
 
     return () => {
@@ -694,7 +699,15 @@ export default function App() {
     const attachment = await uploadAttachment(banquetFile, 'eventos');
 
     const hasLastMinute = lastMinuteChange || !!lastMinuteNotes.trim();
-    const pendingText = salonPendingNotes.trim() || null;
+    const pendingExtra = salonPendingNotes.trim();
+    const combinedStatus =
+      salonMountState === 'Terminado / Montado'
+        ? pendingExtra
+          ? `Terminado / Montado · Pendiente: ${pendingExtra}`
+          : 'Terminado / Montado'
+        : pendingExtra
+        ? `Falta por montar · Pendiente: ${pendingExtra}`
+        : 'Falta por montar';
 
     const { data, error } = await supabase
       .from('banquet_events')
@@ -706,7 +719,7 @@ export default function App() {
           start_time: startTime,
           pax: Number(paxCount) || 0,
           setup_type: setupType,
-          setup_status: pendingText ? `Pendiente: ${pendingText}` : 'Pendiente',
+          setup_status: combinedStatus,
           allergens_notes: allergensNotes.trim() || null,
           extras_notes: extrasNotes.trim() || null,
           last_minute_change: hasLastMinute,
@@ -730,6 +743,27 @@ export default function App() {
       setLastMinuteNotes('');
       setSalonPendingNotes('');
       setBanquetFile(null);
+    }
+  }
+
+  async function toggleBanquetMountState(ev, nextState) {
+    const newStatus =
+      nextState === 'terminado' ? 'Terminado / Montado' : 'Falta por montar';
+
+    setBanquetEvents((prev) =>
+      prev.map((item) => (item.id === ev.id ? { ...item, setup_status: newStatus } : item))
+    );
+
+    const { error } = await supabase
+      .from('banquet_events')
+      .update({ setup_status: newStatus })
+      .eq('id', ev.id);
+
+    if (error) {
+      alert(`No se pudo actualizar estado: ${error.message}`);
+      loadAllData();
+    } else {
+      await addLog(`Estado salón (${ev.salon_name})`, `${ev.event_name} -> ${newStatus}`);
     }
   }
 
@@ -771,6 +805,7 @@ export default function App() {
       loadAllData();
     } else {
       await addLog('Eliminó evento', `${ev.event_name} [${ev.salon_name}]`);
+      await loadAllData();
     }
   }
 
@@ -813,6 +848,7 @@ export default function App() {
       loadAllData();
     } else {
       await addLog(`Borró de calendario (${ev.event_date})`, `${ev.title} [${ev.outlet}]`);
+      await loadAllData();
     }
   }
 
@@ -896,8 +932,10 @@ export default function App() {
     !searchQuery.trim() ||
     (text && text.toLowerCase().includes(searchQuery.trim().toLowerCase()));
 
-  // Sincronización en tiempo real de avisos superiores según eventos vigentes en BD
-  const tomorrowBanquetsToReview = banquetEvents.filter((b) => b.event_date === tomorrowStr);
+  // Solo salones que faltan por montar para mañana (excluye terminados/montados)
+  const tomorrowBanquetsPendingMount = banquetEvents.filter(
+    (b) => b.event_date === tomorrowStr && !isSalonReady(b)
+  );
   const todayBanquets = banquetEvents.filter((b) => b.event_date === todayStr);
 
   const todayCalendarNotices = events.filter((ev) => ev.event_date === todayStr);
@@ -1030,7 +1068,7 @@ export default function App() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 pt-4 space-y-4">
-        {/* AVISOS SINCRONIZADOS DE CALENDARIO (HOY Y MAÑANA) */}
+        {/* AVISOS SINCRONIZADOS DE CALENDARIO */}
         {(todayCalendarNotices.length > 0 || tomorrowCalendarNotices.length > 0) && (
           <div className="bg-amber-50 border-2 border-slate-950 rounded-2xl p-3.5 space-y-2">
             <div className="flex items-center justify-between gap-2">
@@ -1087,13 +1125,13 @@ export default function App() {
           </div>
         )}
 
-        {/* AVISO SINCRONIZADO DE EVENTOS DE SALONES PARA MAÑANA */}
-        {tomorrowBanquetsToReview.length > 0 && (
+        {/* SALONES POR MONTAR PARA MAÑANA (SOLO LOS NO TERMINADOS) */}
+        {tomorrowBanquetsPendingMount.length > 0 && (
           <div className="bg-amber-100 border-2 border-slate-950 rounded-2xl p-3.5 space-y-1.5">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 text-xs font-black text-slate-950 uppercase tracking-wide">
                 <BellRing className="w-4 h-4 text-slate-950 shrink-0" />
-                <span>Eventos de Salones para mañana ({tomorrowStr})</span>
+                <span>Salones por montar para mañana ({tomorrowStr})</span>
               </div>
               <button
                 onClick={() => {
@@ -1106,7 +1144,7 @@ export default function App() {
               </button>
             </div>
             <div className="space-y-1">
-              {tomorrowBanquetsToReview.map((ev) => (
+              {tomorrowBanquetsPendingMount.map((ev) => (
                 <p key={ev.id} className="text-xs font-semibold text-slate-950">
                   • <strong>{ev.salon_name}</strong> ({ev.start_time} · {ev.pax} PAX) —{' '}
                   <span className="font-black underline">{ev.event_name}</span>
@@ -1117,7 +1155,6 @@ export default function App() {
           </div>
         )}
 
-        {/* AVISOS DE DÍA 1 DE MES Y DÍAS DE PEDIDOS (DOMINGO, LUNES Y MIÉRCOLES) */}
         {(isFirstOfMonth || isOrderDay) && (
           <div className="space-y-2">
             {isFirstOfMonth && (
@@ -1416,7 +1453,7 @@ export default function App() {
               <div className="bg-white border-2 border-slate-950 rounded-2xl p-4 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xs font-black uppercase tracking-wider text-slate-950">
-                    Eventos de hoy y mañana
+                    Salones por montar mañana ({tomorrowStr})
                   </h3>
                   <button
                     onClick={() => setActiveTab('salones')}
@@ -1426,10 +1463,10 @@ export default function App() {
                   </button>
                 </div>
 
-                {[...todayBanquets, ...tomorrowBanquetsToReview].length === 0 ? (
-                  <p className="text-xs text-slate-600">No hay eventos registrados hoy ni mañana.</p>
+                {tomorrowBanquetsPendingMount.length === 0 ? (
+                  <p className="text-xs text-slate-600">No hay salones pendientes de montar para mañana.</p>
                 ) : (
-                  [...todayBanquets, ...tomorrowBanquetsToReview].map((ev) => (
+                  tomorrowBanquetsPendingMount.map((ev) => (
                     <div
                       key={ev.id}
                       className="bg-amber-50 border-2 border-slate-950 rounded-xl p-2.5 text-xs text-slate-950"
@@ -1602,7 +1639,7 @@ export default function App() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
                 <select
                   value={salonName}
                   onChange={(e) => setSalonName(e.target.value)}
@@ -1626,12 +1663,12 @@ export default function App() {
                     value={paxCount}
                     onChange={(e) => setPaxCount(e.target.value)}
                     placeholder="PAX"
-                    className="w-24 bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                    className="w-20 bg-white border-2 border-slate-950 rounded-xl px-2.5 py-2 text-xs font-bold text-slate-950"
                   />
                   <select
                     value={setupType}
                     onChange={(e) => setSetupType(e.target.value)}
-                    className="flex-1 bg-white border-2 border-slate-950 rounded-xl px-2.5 py-2 text-xs font-bold text-slate-950"
+                    className="flex-1 bg-white border-2 border-slate-950 rounded-xl px-2 py-2 text-xs font-bold text-slate-950"
                   >
                     <option value="Banquete">Banquete</option>
                     <option value="Escuela">Escuela</option>
@@ -1640,6 +1677,14 @@ export default function App() {
                     <option value="Imperial">Imperial</option>
                   </select>
                 </div>
+                <select
+                  value={salonMountState}
+                  onChange={(e) => setSalonMountState(e.target.value)}
+                  className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-black text-slate-950"
+                >
+                  <option value="Falta por montar">Falta por montar</option>
+                  <option value="Terminado / Montado">Terminado / Montado</option>
+                </select>
               </div>
 
               <input
@@ -1730,17 +1775,25 @@ export default function App() {
                 const isOpen = !!openSalonCards[salon];
                 const salonEvents = banquetsForDate.filter((b) => b.salon_name === salon);
                 const hasLastMinute = salonEvents.some((b) => b.last_minute_change);
+                const allReady =
+                  salonEvents.length > 0 && salonEvents.every((b) => isSalonReady(b));
 
                 return (
                   <div
                     key={salon}
-                    className="bg-white border-2 border-slate-950 rounded-2xl overflow-hidden"
+                    className={`border-2 border-slate-950 rounded-2xl overflow-hidden ${
+                      allReady ? 'bg-amber-50' : 'bg-white'
+                    }`}
                   >
                     <button
                       type="button"
                       onClick={() => toggleSalonCard(salon)}
                       className={`w-full px-4 py-3.5 flex items-center justify-between gap-2 text-left transition ${
-                        isOpen ? 'bg-amber-400' : 'bg-white hover:bg-amber-50'
+                        isOpen
+                          ? 'bg-amber-400'
+                          : allReady
+                          ? 'bg-amber-200 hover:bg-amber-300'
+                          : 'bg-white hover:bg-amber-50'
                       }`}
                     >
                       <div className="flex flex-wrap items-center gap-2">
@@ -1749,6 +1802,17 @@ export default function App() {
                         <span className="text-xs px-2 py-0.5 rounded-lg bg-slate-950 text-amber-400 font-bold">
                           {salonEvents.length} ({banquetDate})
                         </span>
+                        {salonEvents.length > 0 && (
+                          <span
+                            className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border border-slate-950 ${
+                              allReady
+                                ? 'bg-white text-slate-950'
+                                : 'bg-amber-300 text-slate-950'
+                            }`}
+                          >
+                            {allReady ? 'Terminado / Montado' : 'Falta por montar'}
+                          </span>
+                        )}
                         {hasLastMinute && (
                           <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-slate-950 text-amber-300">
                             Cambios de última hora
@@ -1778,85 +1842,115 @@ export default function App() {
                             Sin eventos en {salon} para el {banquetDate}.
                           </p>
                         ) : (
-                          salonEvents.map((ev) => (
-                            <div
-                              key={ev.id}
-                              className="bg-white border-2 border-slate-950 rounded-xl p-3 space-y-2.5"
-                            >
-                              <div className="flex flex-wrap items-center justify-between gap-2">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xs font-black px-2 py-0.5 rounded bg-slate-950 text-amber-400">
-                                    {ev.start_time}
-                                  </span>
-                                  <span className="text-xs font-bold text-slate-950 flex items-center gap-1">
-                                    <Users className="w-3.5 h-3.5" />
-                                    {ev.pax} PAX · {ev.setup_type}
-                                  </span>
+                          salonEvents.map((ev) => {
+                            const ready = isSalonReady(ev);
+                            return (
+                              <div
+                                key={ev.id}
+                                className={`border-2 border-slate-950 rounded-xl p-3 space-y-2.5 ${
+                                  ready ? 'bg-amber-100' : 'bg-white'
+                                }`}
+                              >
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <span className="text-xs font-black px-2 py-0.5 rounded bg-slate-950 text-amber-400">
+                                      {ev.start_time}
+                                    </span>
+                                    <span className="text-xs font-bold text-slate-950 flex items-center gap-1">
+                                      <Users className="w-3.5 h-3.5" />
+                                      {ev.pax} PAX · {ev.setup_type}
+                                    </span>
+                                    <span
+                                      className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border border-slate-950 ${
+                                        ready
+                                          ? 'bg-slate-950 text-amber-400'
+                                          : 'bg-amber-300 text-slate-950'
+                                      }`}
+                                    >
+                                      {ready ? 'Terminado / Montado' : 'Falta por montar'}
+                                    </span>
+                                  </div>
+
+                                  <div className="flex items-center gap-1.5">
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        toggleBanquetMountState(
+                                          ev,
+                                          ready ? 'falta' : 'terminado'
+                                        )
+                                      }
+                                      className="text-[11px] font-black px-2.5 py-1 rounded-lg border-2 border-slate-950 bg-amber-400 hover:bg-amber-300 text-slate-950"
+                                    >
+                                      {ready
+                                        ? 'Marcar: Falta por montar'
+                                        : 'Marcar: Terminado / Montado'}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => deleteBanquetEvent(ev)}
+                                      className="text-slate-950 hover:bg-amber-400 p-1.5 rounded-lg border border-slate-950 bg-amber-100"
+                                      title="Borrar evento"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
                                 </div>
 
-                                <button
-                                  type="button"
-                                  onClick={() => deleteBanquetEvent(ev)}
-                                  className="text-slate-950 hover:bg-amber-400 p-1.5 rounded-lg border border-slate-950 bg-amber-100"
-                                  title="Borrar evento"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </button>
+                                <p className="text-sm font-black text-slate-950">{ev.event_name}</p>
+
+                                {ev.allergens_notes && (
+                                  <p className="text-xs font-bold text-slate-950 bg-amber-100 border border-slate-950 rounded-lg px-2.5 py-1">
+                                    Alérgenos / dietas: {ev.allergens_notes}
+                                  </p>
+                                )}
+
+                                {ev.extras_notes && (
+                                  <p className="text-xs font-semibold text-slate-800 bg-slate-100 border border-slate-950 rounded-lg px-2.5 py-1">
+                                    Material / extras: {ev.extras_notes}
+                                  </p>
+                                )}
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                                  <div className="bg-amber-100 border border-slate-950 rounded-lg p-2 space-y-1">
+                                    <span className="block text-[11px] font-black text-slate-950">
+                                      Cambios de última hora
+                                    </span>
+                                    <input
+                                      type="text"
+                                      defaultValue={ev.last_minute_notes || ''}
+                                      onBlur={(e) =>
+                                        updateBanquetSalonItem(ev, 'last_minute', e.target.value)
+                                      }
+                                      placeholder="Añadir cambio de última hora..."
+                                      className="w-full bg-white border border-slate-950 rounded px-2 py-1 text-xs font-semibold text-slate-950"
+                                    />
+                                  </div>
+
+                                  <div className="bg-amber-50 border border-slate-950 rounded-lg p-2 space-y-1">
+                                    <span className="block text-[11px] font-black text-slate-950">
+                                      Pendiente
+                                    </span>
+                                    <input
+                                      type="text"
+                                      defaultValue={ev.setup_status || 'Falta por montar'}
+                                      onBlur={(e) =>
+                                        updateBanquetSalonItem(ev, 'pendiente', e.target.value)
+                                      }
+                                      placeholder="Añadir pendiente..."
+                                      className="w-full bg-white border border-slate-950 rounded px-2 py-1 text-xs font-semibold text-slate-950"
+                                    />
+                                  </div>
+                                </div>
+
+                                <AttachmentPreview
+                                  url={ev.attachment_url}
+                                  name={ev.attachment_name}
+                                  onOpenImage={setPreviewImageUrl}
+                                />
                               </div>
-
-                              <p className="text-sm font-black text-slate-950">{ev.event_name}</p>
-
-                              {ev.allergens_notes && (
-                                <p className="text-xs font-bold text-slate-950 bg-amber-100 border border-slate-950 rounded-lg px-2.5 py-1">
-                                  Alérgenos / dietas: {ev.allergens_notes}
-                                </p>
-                              )}
-
-                              {ev.extras_notes && (
-                                <p className="text-xs font-semibold text-slate-800 bg-slate-100 border border-slate-950 rounded-lg px-2.5 py-1">
-                                  Material / extras: {ev.extras_notes}
-                                </p>
-                              )}
-
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                                <div className="bg-amber-100 border border-slate-950 rounded-lg p-2 space-y-1">
-                                  <span className="block text-[11px] font-black text-slate-950">
-                                    Cambios de última hora
-                                  </span>
-                                  <input
-                                    type="text"
-                                    defaultValue={ev.last_minute_notes || ''}
-                                    onBlur={(e) =>
-                                      updateBanquetSalonItem(ev, 'last_minute', e.target.value)
-                                    }
-                                    placeholder="Añadir cambio de última hora..."
-                                    className="w-full bg-white border border-slate-950 rounded px-2 py-1 text-xs font-semibold text-slate-950"
-                                  />
-                                </div>
-
-                                <div className="bg-amber-50 border border-slate-950 rounded-lg p-2 space-y-1">
-                                  <span className="block text-[11px] font-black text-slate-950">
-                                    Pendiente
-                                  </span>
-                                  <input
-                                    type="text"
-                                    defaultValue={ev.setup_status || 'Pendiente'}
-                                    onBlur={(e) =>
-                                      updateBanquetSalonItem(ev, 'pendiente', e.target.value)
-                                    }
-                                    placeholder="Añadir pendiente..."
-                                    className="w-full bg-white border border-slate-950 rounded px-2 py-1 text-xs font-semibold text-slate-950"
-                                  />
-                                </div>
-                              </div>
-
-                              <AttachmentPreview
-                                url={ev.attachment_url}
-                                name={ev.attachment_name}
-                                onOpenImage={setPreviewImageUrl}
-                              />
-                            </div>
-                          ))
+                            );
+                          })
                         )}
                       </div>
                     )}
