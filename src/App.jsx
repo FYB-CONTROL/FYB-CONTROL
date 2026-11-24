@@ -23,6 +23,15 @@ import {
   Search,
   CheckCheck,
   Crown,
+  Paperclip,
+  FileText,
+  X,
+  AlertOctagon,
+  DoorOpen,
+  ChevronDown,
+  ChevronUp,
+  Sun,
+  Calendar as CalendarIcon,
 } from 'lucide-react';
 
 const SUPABASE_URL = 'https://wqdxdhfdeudagfbveium.supabase.co';
@@ -31,7 +40,13 @@ const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_qo2SlzVJQriNXIdXrLR7GQ_N7gT_Lg1
 const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 
 const OUTLETS = ['Todo F&B', 'Thalassa', 'Lobby Bar', 'Alborán', 'Pool-Side', 'Chill-Out', 'Salones'];
-const SALONS = ['Salón Atlántico', 'Salón Mediterráneo', 'Salón Costa del Sol', 'Terraza Eventos', 'Privado Thalassa'];
+const SALONS = [
+  'Salón Ronda',
+  'Salón Mistral',
+  'Salón Poniente',
+  'Salón Sirocco',
+  'Salón Garbino',
+];
 const ROLES = ['Todos', 'Maître', '2º Maître', 'Jefe de Sector'];
 const SHIFT_PHASES = [
   { id: 'all', label: 'Todo el turno' },
@@ -41,6 +56,17 @@ const SHIFT_PHASES = [
 ];
 const SETUP_STATUSES = ['Pendiente', 'En montaje', 'Listo', 'En servicio', 'Recogido'];
 const DAY_NAMES = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+
+function isImageUrl(url = '') {
+  return /\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(url);
+}
+
+function toLocalDateStr(dateObj) {
+  const y = dateObj.getFullYear();
+  const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const d = String(dateObj.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
 
 export default function App() {
   const [session, setSession] = useState(null);
@@ -53,37 +79,61 @@ export default function App() {
   const [submittingAuth, setSubmittingAuth] = useState(false);
 
   const [selectedOutlet, setSelectedOutlet] = useState('Thalassa');
-  const [activeTab, setActiveTab] = useState('relevo');
+  const [activeTab, setActiveTab] = useState('resumen');
   const [searchQuery, setSearchQuery] = useState('');
   const [onlyOpenFilter, setOnlyOpenFilter] = useState(false);
   const [weatherPlanB, setWeatherPlanB] = useState(false);
+  const [previewImageUrl, setPreviewImageUrl] = useState(null);
+  const [uploadingFile, setUploadingFile] = useState(false);
 
+  // Datos
   const [tasks, setTasks] = useState([]);
   const [complaints, setComplaints] = useState([]);
   const [events, setEvents] = useState([]);
   const [banquetEvents, setBanquetEvents] = useState([]);
   const [handovers, setHandovers] = useState([]);
+  const [incidences, setIncidences] = useState([]);
+  const [roomRequests, setRoomRequests] = useState([]);
   const [logs, setLogs] = useState([]);
 
+  // Relevo
   const [handoverType, setHandoverType] = useState('relevo');
   const [handoverPriority, setHandoverPriority] = useState('normal');
   const [handoverTitle, setHandoverTitle] = useState('');
   const [handoverDetails, setHandoverDetails] = useState('');
+  const [handoverFile, setHandoverFile] = useState(null);
 
+  // Tareas / Pendientes
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskNotes, setNewTaskNotes] = useState('');
   const [taskPriority, setTaskPriority] = useState('normal');
   const [taskPhase, setTaskPhase] = useState('apertura');
   const [taskRole, setTaskRole] = useState('Todos');
   const [phaseFilter, setPhaseFilter] = useState('all');
-  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(() => toLocalDateStr(new Date()));
 
+  // Quejas / VIP
   const [recordType, setRecordType] = useState('queja');
   const [roomNumber, setRoomNumber] = useState('');
   const [complaintText, setComplaintText] = useState('');
   const [managerResponse, setManagerResponse] = useState('');
+  const [complaintFile, setComplaintFile] = useState(null);
 
-  const [banquetDate, setBanquetDate] = useState(() => new Date().toISOString().split('T')[0]);
+  // Incidencias
+  const [incTitle, setIncTitle] = useState('');
+  const [incDetails, setIncDetails] = useState('');
+  const [incSeverity, setIncSeverity] = useState('media');
+  const [incFile, setIncFile] = useState(null);
+
+  // Peticiones de habitaciones
+  const [reqRoom, setReqRoom] = useState('');
+  const [reqDate, setReqDate] = useState(() => toLocalDateStr(new Date()));
+  const [reqText, setReqText] = useState('');
+  const [reqNotes, setReqNotes] = useState('');
+
+  // Eventos / Salones con cuadros desplegables
+  const [banquetDate, setBanquetDate] = useState(() => toLocalDateStr(new Date()));
+  const [openSalonCards, setOpenSalonCards] = useState({ 'Salón Ronda': true });
   const [salonName, setSalonName] = useState(SALONS[0]);
   const [banquetName, setBanquetName] = useState('');
   const [startTime, setStartTime] = useState('13:30');
@@ -92,13 +142,21 @@ export default function App() {
   const [allergensNotes, setAllergensNotes] = useState('');
   const [extrasNotes, setExtrasNotes] = useState('');
   const [lastMinuteChange, setLastMinuteChange] = useState(false);
+  const [lastMinuteNotes, setLastMinuteNotes] = useState('');
+  const [banquetFile, setBanquetFile] = useState(null);
 
-  const [calendarDate, setCalendarDate] = useState(() => new Date().toISOString().split('T')[0]);
+  // Calendario independiente
+  const [calendarDate, setCalendarDate] = useState(() => toLocalDateStr(new Date()));
+  const [showAllCalendarEvents, setShowAllCalendarEvents] = useState(true);
   const [eventTitle, setEventTitle] = useState('');
   const [eventDetails, setEventDetails] = useState('');
 
   const today = new Date();
-  const todayStr = today.toISOString().split('T')[0];
+  const todayStr = toLocalDateStr(today);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+  const tomorrowStr = toLocalDateStr(tomorrow);
+
   const isFirstOfMonth = today.getDate() === 1;
   const dayOfWeek = today.getDay();
   const isOrderDay = dayOfWeek === 0 || dayOfWeek === 2 || dayOfWeek === 4;
@@ -139,12 +197,23 @@ export default function App() {
   }
 
   async function loadAllData() {
-    const [tasksRes, complaintsRes, eventsRes, banquetsRes, handoversRes, logsRes] = await Promise.all([
+    const [
+      tasksRes,
+      complaintsRes,
+      eventsRes,
+      banquetsRes,
+      handoversRes,
+      incidencesRes,
+      roomReqRes,
+      logsRes,
+    ] = await Promise.all([
       supabase.from('tasks').select('*').order('created_at', { ascending: true }),
       supabase.from('complaints').select('*').order('created_at', { ascending: false }),
       supabase.from('calendar_events').select('*').order('event_date', { ascending: true }),
       supabase.from('banquet_events').select('*').order('start_time', { ascending: true }),
       supabase.from('shift_handovers').select('*').order('created_at', { ascending: false }),
+      supabase.from('incidences').select('*').order('created_at', { ascending: false }),
+      supabase.from('room_requests').select('*').order('request_date', { ascending: true }),
       supabase.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(60),
     ]);
 
@@ -153,6 +222,8 @@ export default function App() {
     if (eventsRes.data) setEvents(eventsRes.data);
     if (banquetsRes.data) setBanquetEvents(banquetsRes.data);
     if (handoversRes.data) setHandovers(handoversRes.data);
+    if (incidencesRes.data) setIncidences(incidencesRes.data);
+    if (roomReqRes.data) setRoomRequests(roomReqRes.data);
     if (logsRes.data) setLogs(logsRes.data);
   }
 
@@ -161,12 +232,14 @@ export default function App() {
     loadAllData();
 
     const channel = supabase
-      .channel('h10-fyb-control-realtime')
+      .channel('h10-fyb-control-v2')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, loadAllData)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'complaints' }, loadAllData)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'calendar_events' }, loadAllData)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'banquet_events' }, loadAllData)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'shift_handovers' }, loadAllData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'incidences' }, loadAllData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'room_requests' }, loadAllData)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'audit_logs' }, loadAllData)
       .subscribe();
 
@@ -174,6 +247,32 @@ export default function App() {
       supabase.removeChannel(channel);
     };
   }, [session]);
+
+  async function uploadAttachment(file, folder = 'general') {
+    if (!file) return { url: null, name: null };
+    setUploadingFile(true);
+    try {
+      const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const filePath = `${folder}/${Date.now()}_${cleanName}`;
+
+      const { error } = await supabase.storage
+        .from('fyb-attachments')
+        .upload(filePath, file);
+
+      if (error) {
+        alert(`Error al subir archivo: ${error.message}`);
+        return { url: null, name: null };
+      }
+
+      const { data } = supabase.storage
+        .from('fyb-attachments')
+        .getPublicUrl(filePath);
+
+      return { url: data.publicUrl, name: file.name };
+    } finally {
+      setUploadingFile(false);
+    }
+  }
 
   async function handleLogin(e) {
     e.preventDefault();
@@ -209,10 +308,19 @@ export default function App() {
 
   const activeOutletForWrite = selectedOutlet === 'Todo F&B' ? 'Thalassa' : selectedOutlet;
 
+  function toggleSalonCard(name) {
+    setOpenSalonCards((prev) => ({
+      ...prev,
+      [name]: !prev[name],
+    }));
+  }
+
+  // Relevo
   async function handleAddHandover(e) {
     e.preventDefault();
     if (!handoverTitle.trim()) return;
     const actor = profileName || session.user.email;
+    const attachment = await uploadAttachment(handoverFile, 'relevo');
 
     const { error } = await supabase.from('shift_handovers').insert([
       {
@@ -221,6 +329,8 @@ export default function App() {
         priority: handoverPriority,
         title: handoverTitle.trim(),
         details: handoverDetails.trim() || null,
+        attachment_url: attachment.url,
+        attachment_name: attachment.name,
         created_by: actor,
       },
     ]);
@@ -229,6 +339,7 @@ export default function App() {
       await addLog(`Añadió aviso (${handoverType})`, `${handoverTitle.trim()} [${activeOutletForWrite}]`);
       setHandoverTitle('');
       setHandoverDetails('');
+      setHandoverFile(null);
     }
   }
 
@@ -249,6 +360,97 @@ export default function App() {
     }
   }
 
+  // Incidencias
+  async function handleAddIncidence(e) {
+    e.preventDefault();
+    if (!incTitle.trim()) return;
+    const actor = profileName || session.user.email;
+    const attachment = await uploadAttachment(incFile, 'incidencias');
+
+    const { error } = await supabase.from('incidences').insert([
+      {
+        outlet: activeOutletForWrite,
+        title: incTitle.trim(),
+        details: incDetails.trim() || null,
+        severity: incSeverity,
+        status: 'abierta',
+        attachment_url: attachment.url,
+        attachment_name: attachment.name,
+        reported_by: actor,
+      },
+    ]);
+
+    if (!error) {
+      await addLog('Registró incidencia', `${incTitle.trim()} [${activeOutletForWrite}]`);
+      setIncTitle('');
+      setIncDetails('');
+      setIncFile(null);
+    }
+  }
+
+  async function toggleIncidenceStatus(inc) {
+    const nextStatus = inc.status === 'resuelta' ? 'abierta' : 'resuelta';
+    const { error } = await supabase
+      .from('incidences')
+      .update({ status: nextStatus })
+      .eq('id', inc.id);
+    if (!error) {
+      await addLog(`Incidencia ${nextStatus}`, `${inc.title} [${inc.outlet}]`);
+    }
+  }
+
+  async function deleteIncidence(inc) {
+    const { error } = await supabase.from('incidences').delete().eq('id', inc.id);
+    if (!error) {
+      await addLog('Eliminó incidencia', `${inc.title} [${inc.outlet}]`);
+    }
+  }
+
+  // Peticiones de habitaciones
+  async function handleAddRoomRequest(e) {
+    e.preventDefault();
+    if (!reqRoom.trim() || !reqText.trim()) return;
+    const actor = profileName || session.user.email;
+
+    const { error } = await supabase.from('room_requests').insert([
+      {
+        room_number: reqRoom.trim(),
+        outlet: activeOutletForWrite,
+        request_date: reqDate,
+        request_text: reqText.trim(),
+        notes: reqNotes.trim() || null,
+        status: 'pendiente',
+        created_by: actor,
+      },
+    ]);
+
+    if (!error) {
+      await addLog('Anotó petición habitación', `Hab. ${reqRoom.trim()} · ${reqText.trim()}`);
+      setReqRoom('');
+      setReqText('');
+      setReqNotes('');
+    }
+  }
+
+  async function toggleRoomRequest(reqItem) {
+    const nextStatus = reqItem.status === 'atendida' ? 'pendiente' : 'atendida';
+    const { error } = await supabase
+      .from('room_requests')
+      .update({ status: nextStatus })
+      .eq('id', reqItem.id);
+    if (!error) {
+      await addLog(`Petición hab. ${reqItem.room_number} -> ${nextStatus}`, reqItem.request_text);
+    }
+  }
+
+  async function deleteRoomRequest(reqItem) {
+    const { error } = await supabase.from('room_requests').delete().eq('id', reqItem.id);
+    if (!error) {
+      await addLog('Borró petición habitación', `Hab. ${reqItem.room_number}`);
+    }
+  }
+
+  // Tareas y Pendientes
   async function handleAddTask(e, section) {
     e.preventDefault();
     const title = newTaskTitle.trim();
@@ -300,7 +502,7 @@ export default function App() {
   async function rollOverTaskToTomorrow(task) {
     const base = new Date(task.due_date || todayStr);
     base.setDate(base.getDate() + 1);
-    const nextDate = base.toISOString().split('T')[0];
+    const nextDate = toLocalDateStr(base);
 
     const { error } = await supabase
       .from('tasks')
@@ -319,11 +521,14 @@ export default function App() {
     }
   }
 
+  // Quejas / VIP
   async function handleAddComplaint(e) {
     e.preventDefault();
     if (!roomNumber.trim() || !complaintText.trim() || !managerResponse.trim()) return;
 
     const actor = profileName || session.user.email;
+    const attachment = await uploadAttachment(complaintFile, 'quejas');
+
     const { error } = await supabase.from('complaints').insert([
       {
         outlet: activeOutletForWrite,
@@ -332,6 +537,8 @@ export default function App() {
         manager_response: managerResponse.trim(),
         record_type: recordType,
         status: 'abierta',
+        attachment_url: attachment.url,
+        attachment_name: attachment.name,
         reported_by: actor,
       },
     ]);
@@ -341,6 +548,7 @@ export default function App() {
       setRoomNumber('');
       setComplaintText('');
       setManagerResponse('');
+      setComplaintFile(null);
     }
   }
 
@@ -355,10 +563,12 @@ export default function App() {
     }
   }
 
+  // Eventos / Salones
   async function handleAddBanquetEvent(e) {
     e.preventDefault();
     if (!banquetName.trim()) return;
     const actor = profileName || session.user.email;
+    const attachment = await uploadAttachment(banquetFile, 'eventos');
 
     const { error } = await supabase.from('banquet_events').insert([
       {
@@ -372,16 +582,36 @@ export default function App() {
         allergens_notes: allergensNotes.trim() || null,
         extras_notes: extrasNotes.trim() || null,
         last_minute_change: lastMinuteChange,
+        last_minute_notes: lastMinuteNotes.trim() || null,
+        attachment_url: attachment.url,
+        attachment_name: attachment.name,
         created_by: actor,
       },
     ]);
 
     if (!error) {
       await addLog(`Creó evento (${banquetDate})`, `${banquetName.trim()} · ${salonName} (${paxCount} PAX)`);
+      setOpenSalonCards((prev) => ({ ...prev, [salonName]: true }));
       setBanquetName('');
       setAllergensNotes('');
       setExtrasNotes('');
       setLastMinuteChange(false);
+      setLastMinuteNotes('');
+      setBanquetFile(null);
+    }
+  }
+
+  async function toggleBanquetLastMinute(ev) {
+    const nextVal = !ev.last_minute_change;
+    const { error } = await supabase
+      .from('banquet_events')
+      .update({ last_minute_change: nextVal })
+      .eq('id', ev.id);
+    if (!error) {
+      await addLog(
+        nextVal ? 'Marcó cambio última hora' : 'Quitó cambio última hora',
+        `${ev.event_name} [${ev.salon_name}]`
+      );
     }
   }
 
@@ -402,6 +632,7 @@ export default function App() {
     }
   }
 
+  // Calendario independiente
   async function handleAddCalendarEvent(e) {
     e.preventDefault();
     if (!eventTitle.trim() || !calendarDate) return;
@@ -514,6 +745,11 @@ export default function App() {
     !searchQuery.trim() ||
     (text && text.toLowerCase().includes(searchQuery.trim().toLowerCase()));
 
+  // Eventos programados para MAÑANA -> avisar HOY para revisar el salón
+  const tomorrowBanquetsToReview = banquetEvents.filter((b) => b.event_date === tomorrowStr);
+  const todayBanquets = banquetEvents.filter((b) => b.event_date === todayStr);
+
+  // Avisos / Relevo
   const filteredHandovers = handovers.filter(
     (h) =>
       matchesOutlet(h.outlet) &&
@@ -521,6 +757,23 @@ export default function App() {
       matchesSearch(`${h.title} ${h.details || ''} ${h.outlet}`)
   );
 
+  // Incidencias
+  const filteredIncidences = incidences.filter(
+    (inc) =>
+      matchesOutlet(inc.outlet) &&
+      (!onlyOpenFilter || inc.status !== 'resuelta') &&
+      matchesSearch(`${inc.title} ${inc.details || ''} ${inc.outlet}`)
+  );
+
+  // Peticiones de habitaciones
+  const filteredRoomRequests = roomRequests.filter(
+    (r) =>
+      matchesOutlet(r.outlet) &&
+      (!onlyOpenFilter || r.status !== 'atendida') &&
+      matchesSearch(`${r.room_number} ${r.request_text} ${r.notes || ''} ${r.outlet}`)
+  );
+
+  // Checklist
   const outletChecklist = tasks.filter(
     (t) =>
       matchesOutlet(t.outlet) &&
@@ -534,6 +787,7 @@ export default function App() {
   const progressPercent =
     outletChecklist.length > 0 ? Math.round((completedCount / outletChecklist.length) * 100) : 0;
 
+  // Pendientes
   const outletPending = tasks.filter(
     (t) =>
       matchesOutlet(t.outlet) &&
@@ -543,6 +797,7 @@ export default function App() {
       matchesSearch(`${t.title} ${t.notes || ''} ${t.outlet}`)
   );
 
+  // Quejas / VIP
   const outletComplaints = complaints.filter(
     (c) =>
       matchesOutlet(c.outlet) &&
@@ -550,17 +805,25 @@ export default function App() {
       matchesSearch(`${c.room_number} ${c.complaint_text} ${c.manager_response} ${c.outlet}`)
   );
 
+  // Salones por fecha
   const banquetsForDate = banquetEvents.filter(
     (b) =>
       b.event_date === banquetDate &&
-      matchesSearch(`${b.salon_name} ${b.event_name} ${b.allergens_notes || ''}`)
+      matchesSearch(
+        `${b.salon_name} ${b.event_name} ${b.allergens_notes || ''} ${b.last_minute_notes || ''}`
+      )
   );
 
-  const eventsForSelectedDate = events.filter((ev) => ev.event_date === calendarDate);
+  // Calendario independiente (todos guardados o filtrados por fecha)
+  const visibleCalendarEvents = events.filter((ev) => {
+    const dateMatch = showAllCalendarEvents || ev.event_date === calendarDate;
+    return dateMatch && matchesSearch(`${ev.title} ${ev.details || ''} ${ev.outlet} ${ev.event_date}`);
+  });
 
+  // Contadores Resumen Diario
+  const openIncidencesCount = incidences.filter((i) => i.status !== 'resuelta').length;
+  const openRoomRequestsCount = roomRequests.filter((r) => r.status !== 'atendida').length;
   const openComplaintsCount = complaints.filter((c) => c.status !== 'cerrada').length;
-  const openHandoversCount = handovers.filter((h) => !h.resolved).length;
-  const todayBanquetsCount = banquetEvents.filter((b) => b.event_date === todayStr).length;
   const urgentPendingCount = tasks.filter(
     (t) => t.section === 'pending' && !t.completed && t.priority === 'urgente'
   ).length;
@@ -568,7 +831,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#091a38] via-[#061124] to-[#040b18] text-slate-100 pb-16">
       <header className="sticky top-0 z-20 bg-[#081630]/95 backdrop-blur-md border-b border-sky-900/60 px-4 py-3">
-        <div className="max-w-4xl mx-auto flex items-center justify-between gap-2">
+        <div className="max-w-5xl mx-auto flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5">
             <div className="px-2.5 h-9 rounded-xl bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-white font-black text-xs tracking-wider shadow-md shadow-sky-500/25">
               H10
@@ -611,7 +874,38 @@ export default function App() {
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 pt-4 space-y-4">
+      <main className="max-w-5xl mx-auto px-4 pt-4 space-y-4">
+        {/* Aviso 1 día antes de un evento para revisar el salón */}
+        {tomorrowBanquetsToReview.length > 0 && (
+          <div className="bg-gradient-to-r from-cyan-500/20 via-blue-600/20 to-indigo-500/20 border border-cyan-400/50 rounded-2xl p-3.5 space-y-1.5 shadow-md">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-xs font-bold text-cyan-200 uppercase tracking-wide">
+                <BellRing className="w-4 h-4 text-cyan-300 shrink-0" />
+                <span>Revisión previa de salones · Eventos para mañana ({tomorrowStr})</span>
+              </div>
+              <button
+                onClick={() => {
+                  setBanquetDate(tomorrowStr);
+                  setActiveTab('salones');
+                }}
+                className="text-[11px] font-bold text-white bg-cyan-600/70 hover:bg-cyan-500 px-2.5 py-1 rounded-lg"
+              >
+                Ver salones mañana
+              </button>
+            </div>
+            <div className="space-y-1">
+              {tomorrowBanquetsToReview.map((ev) => (
+                <p key={ev.id} className="text-xs text-sky-100">
+                  • Revisar <strong>{ev.salon_name}</strong> ({ev.start_time} · {ev.pax} PAX) —{' '}
+                  <span className="text-cyan-200 font-semibold">{ev.event_name}</span>
+                  {ev.last_minute_change ? ' [CAMBIO ÚLTIMA HORA]' : ''}
+                </p>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Alertas de mes / pedidos / clima */}
         {(isFirstOfMonth || isOrderDay || weatherPlanB) && (
           <div className="space-y-2">
             {weatherPlanB && (
@@ -658,6 +952,7 @@ export default function App() {
           </div>
         )}
 
+        {/* Selector de puntos de venta */}
         <div className="flex gap-2 overflow-x-auto pb-1">
           {OUTLETS.map((outlet) => {
             const active = selectedOutlet === outlet;
@@ -677,6 +972,7 @@ export default function App() {
           })}
         </div>
 
+        {/* Buscador + Filtro abiertos */}
         <div className="flex flex-col sm:flex-row gap-2">
           <div className="relative flex-1">
             <Search className="w-4 h-4 text-sky-400/70 absolute left-3 top-2.5" />
@@ -684,7 +980,7 @@ export default function App() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar habitación, salón, cliente, producto..."
+              placeholder="Buscar habitación, salón, incidencia, petición o evento..."
               className="w-full bg-[#0c1d3d]/90 border border-sky-900/70 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder:text-sky-300/40 focus:outline-none focus:border-sky-400"
             />
           </div>
@@ -696,17 +992,30 @@ export default function App() {
                 : 'bg-[#0c1d3d]/90 border-sky-900/70 text-sky-300/70 hover:text-white'
             }`}
           >
-            {onlyOpenFilter ? 'Mostrando solo pendientes' : 'Ver todos (abiertos y hechos)'}
+            {onlyOpenFilter ? 'Mostrando solo abiertos' : 'Ver todos'}
           </button>
         </div>
 
-        <div className="grid grid-cols-6 gap-1 bg-[#0c1d3d]/95 p-1.5 rounded-2xl border border-sky-900/70 shadow-inner">
+        {/* Navegación principal (8 secciones claras) */}
+        <div className="grid grid-cols-4 sm:grid-cols-8 gap-1 bg-[#0c1d3d]/95 p-1.5 rounded-2xl border border-sky-900/70 shadow-inner">
+          <button
+            onClick={() => setActiveTab('resumen')}
+            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[10px] font-semibold transition ${
+              activeTab === 'resumen'
+                ? 'bg-sky-500/25 text-sky-100 border border-sky-400/50'
+                : 'text-sky-300/65 hover:text-white'
+            }`}
+          >
+            <Sun className="w-4 h-4 text-amber-300" />
+            <span>Resumen</span>
+          </button>
+
           <button
             onClick={() => setActiveTab('relevo')}
-            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[10px] sm:text-[11px] font-semibold transition ${
+            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[10px] font-semibold transition ${
               activeTab === 'relevo'
-                ? 'bg-sky-500/20 text-sky-200 border border-sky-400/40'
-                : 'text-sky-300/60 hover:text-white'
+                ? 'bg-sky-500/25 text-sky-100 border border-sky-400/50'
+                : 'text-sky-300/65 hover:text-white'
             }`}
           >
             <ArrowRightCircle className="w-4 h-4 text-sky-400" />
@@ -715,22 +1024,46 @@ export default function App() {
 
           <button
             onClick={() => setActiveTab('salones')}
-            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[10px] sm:text-[11px] font-semibold transition ${
+            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[10px] font-semibold transition ${
               activeTab === 'salones'
-                ? 'bg-cyan-500/20 text-cyan-200 border border-cyan-400/40'
-                : 'text-sky-300/60 hover:text-white'
+                ? 'bg-cyan-500/25 text-cyan-100 border border-cyan-400/50'
+                : 'text-sky-300/65 hover:text-white'
             }`}
           >
             <Utensils className="w-4 h-4 text-cyan-400" />
-            <span>Eventos</span>
+            <span>Salones</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('incidencias')}
+            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[10px] font-semibold transition ${
+              activeTab === 'incidencias'
+                ? 'bg-rose-500/25 text-rose-100 border border-rose-400/50'
+                : 'text-sky-300/65 hover:text-white'
+            }`}
+          >
+            <AlertOctagon className="w-4 h-4 text-rose-400" />
+            <span>Incidencias</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('habitaciones')}
+            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[10px] font-semibold transition ${
+              activeTab === 'habitaciones'
+                ? 'bg-teal-500/25 text-teal-100 border border-teal-400/50'
+                : 'text-sky-300/65 hover:text-white'
+            }`}
+          >
+            <DoorOpen className="w-4 h-4 text-teal-400" />
+            <span>Habitaciones</span>
           </button>
 
           <button
             onClick={() => setActiveTab('checklist')}
-            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[10px] sm:text-[11px] font-semibold transition ${
+            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[10px] font-semibold transition ${
               activeTab === 'checklist'
-                ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-400/40'
-                : 'text-sky-300/60 hover:text-white'
+                ? 'bg-emerald-500/25 text-emerald-100 border border-emerald-400/50'
+                : 'text-sky-300/65 hover:text-white'
             }`}
           >
             <ClipboardList className="w-4 h-4 text-emerald-400" />
@@ -739,10 +1072,10 @@ export default function App() {
 
           <button
             onClick={() => setActiveTab('pending')}
-            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[10px] sm:text-[11px] font-semibold transition ${
+            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[10px] font-semibold transition ${
               activeTab === 'pending'
-                ? 'bg-blue-500/20 text-blue-200 border border-blue-400/40'
-                : 'text-sky-300/60 hover:text-white'
+                ? 'bg-blue-500/25 text-blue-100 border border-blue-400/50'
+                : 'text-sky-300/65 hover:text-white'
             }`}
           >
             <CalendarClock className="w-4 h-4 text-blue-400" />
@@ -750,51 +1083,169 @@ export default function App() {
           </button>
 
           <button
-            onClick={() => setActiveTab('complaints')}
-            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[10px] sm:text-[11px] font-semibold transition ${
-              activeTab === 'complaints'
-                ? 'bg-amber-500/20 text-amber-200 border border-amber-400/40'
-                : 'text-sky-300/60 hover:text-white'
-            }`}
-          >
-            <MessageSquareWarning className="w-4 h-4 text-amber-400" />
-            <span>Quejas/VIP</span>
-          </button>
-
-          <button
             onClick={() => setActiveTab('calendar')}
-            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[10px] sm:text-[11px] font-semibold transition ${
+            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[10px] font-semibold transition ${
               activeTab === 'calendar'
-                ? 'bg-indigo-500/20 text-indigo-200 border border-indigo-400/40'
-                : 'text-sky-300/60 hover:text-white'
+                ? 'bg-indigo-500/25 text-indigo-100 border border-indigo-400/50'
+                : 'text-sky-300/65 hover:text-white'
             }`}
           >
             <CalendarDays className="w-4 h-4 text-indigo-400" />
-            <span>Agenda</span>
+            <span>Calendario</span>
           </button>
         </div>
 
-        {activeTab === 'relevo' && (
+        {/* 1. RESUMEN DIARIO AL ENTRAR */}
+        {activeTab === 'resumen' && (
           <div className="space-y-4">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              <div className="bg-[#0c1d3d] border border-sky-900/80 rounded-2xl p-3">
-                <p className="text-[11px] text-sky-300/70">Avisos relevo activos</p>
-                <p className="text-xl font-black text-sky-300 mt-0.5">{openHandoversCount}</p>
+            <div className="bg-[#0c1d3d]/95 border border-sky-800/80 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-sky-300">
+                  Resumen Diario Operativo · {DAY_NAMES[dayOfWeek]} {today.toLocaleDateString('es-ES')}
+                </p>
+                <p className="text-sm text-white font-semibold mt-0.5">
+                  Hola {profileName}, aquí tienes el estado rápido al entrar al turno o tras librar.
+                </p>
               </div>
-              <div className="bg-[#0c1d3d] border border-sky-900/80 rounded-2xl p-3">
-                <p className="text-[11px] text-sky-300/70">Eventos hoy en salones</p>
-                <p className="text-xl font-black text-cyan-300 mt-0.5">{todayBanquetsCount}</p>
-              </div>
-              <div className="bg-[#0c1d3d] border border-sky-900/80 rounded-2xl p-3">
-                <p className="text-[11px] text-sky-300/70">Quejas / VIP abiertos</p>
-                <p className="text-xl font-black text-amber-300 mt-0.5">{openComplaintsCount}</p>
-              </div>
-              <div className="bg-[#0c1d3d] border border-sky-900/80 rounded-2xl p-3">
-                <p className="text-[11px] text-sky-300/70">Pendientes urgentes</p>
-                <p className="text-xl font-black text-rose-400 mt-0.5">{urgentPendingCount}</p>
-              </div>
+              <button
+                onClick={() => setActiveTab('relevo')}
+                className="px-3.5 py-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/40 text-xs font-bold text-sky-200 shrink-0"
+              >
+                Ir a Relevo / Avisos
+              </button>
             </div>
 
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+              <button
+                onClick={() => setActiveTab('salones')}
+                className="bg-[#0c1d3d] hover:border-cyan-400/60 border border-sky-900/80 rounded-2xl p-3 text-left transition"
+              >
+                <p className="text-[11px] text-sky-300/70">Eventos hoy</p>
+                <p className="text-xl font-black text-cyan-300 mt-0.5">{todayBanquets.length}</p>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('incidencias')}
+                className="bg-[#0c1d3d] hover:border-rose-400/60 border border-sky-900/80 rounded-2xl p-3 text-left transition"
+              >
+                <p className="text-[11px] text-sky-300/70">Incidencias abiertas</p>
+                <p className="text-xl font-black text-rose-400 mt-0.5">{openIncidencesCount}</p>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('habitaciones')}
+                className="bg-[#0c1d3d] hover:border-teal-400/60 border border-sky-900/80 rounded-2xl p-3 text-left transition"
+              >
+                <p className="text-[11px] text-sky-300/70">Peticiones hab.</p>
+                <p className="text-xl font-black text-teal-300 mt-0.5">{openRoomRequestsCount}</p>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('complaints')}
+                className="bg-[#0c1d3d] hover:border-amber-400/60 border border-sky-900/80 rounded-2xl p-3 text-left transition"
+              >
+                <p className="text-[11px] text-sky-300/70">Quejas / VIP</p>
+                <p className="text-xl font-black text-amber-300 mt-0.5">{openComplaintsCount}</p>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('pending')}
+                className="col-span-2 sm:col-span-1 bg-[#0c1d3d] hover:border-sky-400/60 border border-sky-900/80 rounded-2xl p-3 text-left transition"
+              >
+                <p className="text-[11px] text-sky-300/70">Urgentes</p>
+                <p className="text-xl font-black text-sky-300 mt-0.5">{urgentPendingCount}</p>
+              </button>
+            </div>
+
+            {/* Vista rápida de lo activo */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              <div className="bg-[#0c1d3d]/90 border border-sky-900/80 rounded-2xl p-4 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-rose-300">
+                    Incidencias y Peticiones abiertas
+                  </h3>
+                  <button
+                    onClick={() => setActiveTab('incidencias')}
+                    className="text-[11px] text-sky-300 hover:underline"
+                  >
+                    + Añadir incidencia
+                  </button>
+                </div>
+
+                {incidences.filter((i) => i.status !== 'resuelta').slice(0, 3).map((inc) => (
+                  <div
+                    key={inc.id}
+                    className="bg-[#061124]/80 border border-rose-900/50 rounded-xl p-2.5 text-xs"
+                  >
+                    <p className="font-semibold text-white">
+                      [{inc.outlet}] {inc.title}
+                    </p>
+                    {inc.details && <p className="text-sky-200/70 mt-0.5">{inc.details}</p>}
+                  </div>
+                ))}
+
+                {roomRequests.filter((r) => r.status !== 'atendida').slice(0, 3).map((r) => (
+                  <div
+                    key={r.id}
+                    className="bg-[#061124]/80 border border-teal-900/50 rounded-xl p-2.5 text-xs"
+                  >
+                    <p className="font-semibold text-teal-200">
+                      Hab. {r.room_number} · {r.outlet}
+                    </p>
+                    <p className="text-white mt-0.5">{r.request_text}</p>
+                  </div>
+                ))}
+
+                {openIncidencesCount === 0 && openRoomRequestsCount === 0 && (
+                  <p className="text-xs text-sky-300/60">Sin incidencias ni peticiones pendientes.</p>
+                )}
+              </div>
+
+              <div className="bg-[#0c1d3d]/90 border border-sky-900/80 rounded-2xl p-4 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-cyan-300">
+                    Eventos de hoy y mañana
+                  </h3>
+                  <button
+                    onClick={() => setActiveTab('salones')}
+                    className="text-[11px] text-sky-300 hover:underline"
+                  >
+                    Abrir salones
+                  </button>
+                </div>
+
+                {[...todayBanquets, ...tomorrowBanquetsToReview].length === 0 ? (
+                  <p className="text-xs text-sky-300/60">No hay eventos registrados hoy ni mañana.</p>
+                ) : (
+                  [...todayBanquets, ...tomorrowBanquetsToReview].map((ev) => (
+                    <div
+                      key={ev.id}
+                      className="bg-[#061124]/80 border border-sky-900/70 rounded-xl p-2.5 text-xs flex items-center justify-between gap-2"
+                    >
+                      <div>
+                        <p className="font-bold text-cyan-200">
+                          {ev.event_date} · {ev.start_time} · {ev.salon_name}
+                        </p>
+                        <p className="text-white font-medium mt-0.5">
+                          {ev.event_name} ({ev.pax} PAX · {ev.setup_status})
+                        </p>
+                        {ev.last_minute_change && (
+                          <p className="text-[11px] text-amber-300 font-semibold mt-0.5">
+                            Cambio última hora: {ev.last_minute_notes || 'Revisar detalles'}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 2. RELEVO */}
+        {activeTab === 'relevo' && (
+          <div className="space-y-4">
             <form
               onSubmit={handleAddHandover}
               className="bg-[#0c1d3d]/95 border border-sky-900/80 rounded-2xl p-4 space-y-3 shadow-lg"
@@ -830,24 +1281,37 @@ export default function App() {
                 type="text"
                 value={handoverTitle}
                 onChange={(e) => setHandoverTitle(e.target.value)}
-                placeholder="Ej. Sin stock de tónica Schweppes / Lavavajillas bar avisado a SAT..."
+                placeholder="Ej. Cómo quedó el turno, cierres, pendientes al volver de librar..."
                 className="w-full bg-[#061124] border border-sky-900/80 rounded-xl px-3.5 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-sky-400"
               />
 
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={handoverDetails}
-                  onChange={(e) => setHandoverDetails(e.target.value)}
-                  placeholder="Detalle o acción acordada..."
-                  className="flex-1 bg-[#061124]/80 border border-sky-900/80 rounded-xl px-3.5 py-1.5 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none"
-                />
+              <input
+                type="text"
+                value={handoverDetails}
+                onChange={(e) => setHandoverDetails(e.target.value)}
+                placeholder="Detalle o acción acordada..."
+                className="w-full bg-[#061124]/80 border border-sky-900/80 rounded-xl px-3.5 py-1.5 text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none"
+              />
+
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                <label className="flex items-center gap-2 text-xs text-sky-200 bg-[#061124] border border-sky-800/80 px-3 py-1.5 rounded-xl cursor-pointer hover:border-sky-500">
+                  <Paperclip className="w-3.5 h-3.5 text-sky-400" />
+                  <span>{handoverFile ? handoverFile.name : 'Adjuntar foto o archivo'}</span>
+                  <input
+                    type="file"
+                    accept="image/*,.pdf"
+                    onChange={(e) => setHandoverFile(e.target.files?.[0] || null)}
+                    className="hidden"
+                  />
+                </label>
+
                 <button
                   type="submit"
+                  disabled={uploadingFile}
                   className="bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1 shadow-md shadow-sky-500/20"
                 >
                   <Plus className="w-4 h-4" />
-                  Publicar
+                  {uploadingFile ? 'Subiendo...' : 'Publicar'}
                 </button>
               </div>
             </form>
@@ -855,53 +1319,34 @@ export default function App() {
             <div className="space-y-2">
               {filteredHandovers.length === 0 ? (
                 <div className="bg-[#0c1d3d]/40 border border-dashed border-sky-900/70 rounded-2xl p-8 text-center text-xs text-sky-300/60">
-                  No hay avisos de relevo activos en esta vista.
+                  No hay avisos de relevo en esta vista.
                 </div>
               ) : (
                 filteredHandovers.map((item) => (
                   <div
                     key={item.id}
                     className={`bg-[#0c1d3d]/95 border rounded-2xl p-3.5 flex items-start justify-between gap-3 ${
-                      item.resolved
-                        ? 'border-sky-900/40 opacity-60'
-                        : item.priority === 'urgente'
-                        ? 'border-rose-500/60'
-                        : item.priority === 'importante'
-                        ? 'border-amber-400/50'
-                        : 'border-sky-900/80'
+                      item.resolved ? 'border-sky-900/40 opacity-60' : 'border-sky-900/80'
                     }`}
                   >
-                    <button
-                      onClick={() => toggleHandover(item)}
-                      className="flex items-start gap-3 text-left flex-1"
-                    >
-                      {item.resolved ? (
-                        <CheckCheck className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
-                      ) : (
-                        <Circle className="w-5 h-5 text-sky-400 shrink-0 mt-0.5" />
-                      )}
-                      <div className="space-y-1">
+                    <div className="flex items-start gap-3 flex-1">
+                      <button onClick={() => toggleHandover(item)} className="mt-0.5 shrink-0">
+                        {item.resolved ? (
+                          <CheckCheck className="w-5 h-5 text-emerald-400" />
+                        ) : (
+                          <Circle className="w-5 h-5 text-sky-400" />
+                        )}
+                      </button>
+                      <div className="space-y-1.5 flex-1">
                         <div className="flex flex-wrap items-center gap-1.5">
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-sky-500/20 text-sky-200 border border-sky-400/30">
                             {item.outlet}
                           </span>
                           <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-slate-800 text-slate-300">
-                            {item.item_type === 'stock_86'
-                              ? 'Stock / 86'
-                              : item.item_type === 'depto'
-                              ? 'Interdepartamental'
-                              : item.item_type === 'vip'
-                              ? 'VIP / Grupo'
-                              : 'Relevo'}
+                            {item.item_type}
                           </span>
                           {item.priority !== 'normal' && (
-                            <span
-                              className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-md ${
-                                item.priority === 'urgente'
-                                  ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
-                                  : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                              }`}
-                            >
+                            <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300">
                               {item.priority}
                             </span>
                           )}
@@ -914,6 +1359,11 @@ export default function App() {
                           {item.title}
                         </p>
                         {item.details && <p className="text-xs text-sky-100/75">{item.details}</p>}
+                        <AttachmentPreview
+                          url={item.attachment_url}
+                          name={item.attachment_name}
+                          onOpenImage={setPreviewImageUrl}
+                        />
                         <p className="text-[11px] text-sky-300/60">
                           Por {item.created_by} ·{' '}
                           {new Date(item.created_at).toLocaleString('es-ES', {
@@ -924,7 +1374,7 @@ export default function App() {
                           })}
                         </p>
                       </div>
-                    </button>
+                    </div>
                     <button
                       onClick={() => deleteHandover(item)}
                       className="text-slate-500 hover:text-rose-400 p-1.5"
@@ -938,6 +1388,7 @@ export default function App() {
           </div>
         )}
 
+        {/* 3. SALONES (CUADROS DESPLEGABLES POR CADA SALÓN) */}
         {activeTab === 'salones' && (
           <div className="space-y-4">
             <form
@@ -946,7 +1397,7 @@ export default function App() {
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 className="text-xs font-bold uppercase tracking-wider text-cyan-300">
-                  Programar Evento / Montaje de Salón
+                  Nuevo Evento en Salón
                 </h2>
                 <input
                   type="date"
@@ -1001,7 +1452,7 @@ export default function App() {
                 required
                 value={banquetName}
                 onChange={(e) => setBanquetName(e.target.value)}
-                placeholder="Nombre del grupo, empresa o evento..."
+                placeholder="Nombre del evento, grupo o empresa..."
                 className="w-full bg-[#061124] border border-sky-800 rounded-xl px-3.5 py-2 text-sm text-white placeholder:text-slate-500"
               />
 
@@ -1010,75 +1461,292 @@ export default function App() {
                   type="text"
                   value={allergensNotes}
                   onChange={(e) => setAllergensNotes(e.target.value)}
-                  placeholder="Alérgenos / dietas especiales (ej. 2 celíacos, 1 vegano)..."
+                  placeholder="Alérgenos / dietas especiales..."
                   className="bg-[#061124] border border-sky-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder:text-slate-500"
                 />
                 <input
                   type="text"
                   value={extrasNotes}
                   onChange={(e) => setExtrasNotes(e.target.value)}
-                  placeholder="Material, medios técnicos o extras autorizados..."
+                  placeholder="Material, medios técnicos o extras..."
                   className="bg-[#061124] border border-sky-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder:text-slate-500"
                 />
               </div>
 
-              <div className="flex items-center justify-between gap-2 pt-1">
-                <label className="flex items-center gap-2 text-xs text-amber-300 cursor-pointer">
+              <div className="space-y-2 pt-1">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <label className="flex items-center gap-2 text-xs text-amber-300 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={lastMinuteChange}
+                      onChange={(e) => setLastMinuteChange(e.target.checked)}
+                      className="rounded border-sky-700"
+                    />
+                    <span>Cambio de última hora</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 text-xs text-sky-200 bg-[#061124] border border-sky-800/80 px-3 py-1.5 rounded-xl cursor-pointer hover:border-sky-500">
+                    <Paperclip className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>{banquetFile ? banquetFile.name : 'Adjuntar archivo o foto'}</span>
+                    <input
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={(e) => setBanquetFile(e.target.files?.[0] || null)}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
+                {lastMinuteChange && (
                   <input
-                    type="checkbox"
-                    checked={lastMinuteChange}
-                    onChange={(e) => setLastMinuteChange(e.target.checked)}
-                    className="rounded border-sky-700"
+                    type="text"
+                    value={lastMinuteNotes}
+                    onChange={(e) => setLastMinuteNotes(e.target.value)}
+                    placeholder="Especifica el cambio de última hora (ej. sube de 40 a 55 PAX, cambia hora a las 14:00)..."
+                    className="w-full bg-amber-950/30 border border-amber-500/50 rounded-xl px-3 py-1.5 text-xs text-amber-100 placeholder:text-amber-300/50"
                   />
-                  <span>Marcar como cambio de última hora</span>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                disabled={uploadingFile}
+                className="w-full bg-gradient-to-r from-cyan-400 to-blue-600 hover:from-cyan-300 hover:to-blue-500 text-white font-bold py-2.5 rounded-xl text-xs shadow-md"
+              >
+                {uploadingFile ? 'Subiendo archivo...' : 'Guardar evento en salón'}
+              </button>
+            </form>
+
+            {/* Cuadro desplegable por cada salón */}
+            <div className="space-y-3">
+              {SALONS.map((salon) => {
+                const isOpen = !!openSalonCards[salon];
+                const salonEvents = banquetsForDate.filter((b) => b.salon_name === salon);
+                const hasLastMinute = salonEvents.some((b) => b.last_minute_change);
+
+                return (
+                  <div
+                    key={salon}
+                    className={`bg-[#0c1d3d]/95 border rounded-2xl overflow-hidden shadow-md ${
+                      hasLastMinute ? 'border-amber-400/70' : 'border-sky-900/80'
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => toggleSalonCard(salon)}
+                      className="w-full px-4 py-3.5 flex items-center justify-between gap-2 text-left hover:bg-sky-950/50 transition"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <span className="w-2.5 h-2.5 rounded-full bg-cyan-400" />
+                        <span className="text-sm font-bold text-white">{salon}</span>
+                        <span className="text-xs px-2 py-0.5 rounded-lg bg-sky-500/15 text-sky-200 font-semibold">
+                          {salonEvents.length} {salonEvents.length === 1 ? 'evento' : 'eventos'} ({banquetDate})
+                        </span>
+                        {hasLastMinute && (
+                          <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-400/40">
+                            Cambio última hora
+                          </span>
+                        )}
+                      </div>
+                      {isOpen ? (
+                        <ChevronUp className="w-4 h-4 text-sky-300" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4 text-sky-300" />
+                      )}
+                    </button>
+
+                    {isOpen && (
+                      <div className="px-4 pb-4 pt-1 border-t border-sky-900/60 space-y-2.5">
+                        {salonEvents.length === 0 ? (
+                          <p className="text-xs text-sky-300/60 py-2">
+                            Sin eventos programados en {salon} para el {banquetDate}.
+                          </p>
+                        ) : (
+                          salonEvents.map((ev) => (
+                            <div
+                              key={ev.id}
+                              className="bg-[#061124]/90 border border-sky-900/80 rounded-2xl p-3.5 space-y-2"
+                            >
+                              <div className="flex flex-wrap items-center justify-between gap-2">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-lg bg-cyan-500/20 text-cyan-200">
+                                    {ev.start_time}
+                                  </span>
+                                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-lg bg-sky-500/15 text-sky-200 flex items-center gap-1">
+                                    <Users className="w-3.5 h-3.5" />
+                                    {ev.pax} PAX · {ev.setup_type}
+                                  </span>
+                                </div>
+
+                                <div className="flex items-center gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleBanquetLastMinute(ev)}
+                                    className={`text-[10px] font-bold px-2 py-1 rounded-lg border ${
+                                      ev.last_minute_change
+                                        ? 'bg-amber-500/25 text-amber-200 border-amber-400'
+                                        : 'bg-slate-800/80 text-slate-300 border-slate-700'
+                                    }`}
+                                  >
+                                    {ev.last_minute_change ? 'Última hora ✓' : 'Marcar última hora'}
+                                  </button>
+
+                                  <select
+                                    value={ev.setup_status}
+                                    onChange={(e) => updateBanquetStatus(ev, e.target.value)}
+                                    className="bg-[#0c1d3d] border border-sky-700 rounded-lg px-2 py-1 text-xs font-semibold text-sky-200"
+                                  >
+                                    {SETUP_STATUSES.map((st) => (
+                                      <option key={st} value={st}>
+                                        {st}
+                                      </option>
+                                    ))}
+                                  </select>
+
+                                  <button
+                                    onClick={() => deleteBanquetEvent(ev)}
+                                    className="text-slate-500 hover:text-rose-400 p-1"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+
+                              <h4 className="text-sm font-bold text-white">{ev.event_name}</h4>
+
+                              {ev.last_minute_change && (
+                                <p className="text-xs text-amber-200 bg-amber-950/40 border border-amber-500/40 rounded-xl px-3 py-1.5">
+                                  <strong>Cambio de última hora:</strong>{' '}
+                                  {ev.last_minute_notes || 'Revisar cambios con el equipo del salón.'}
+                                </p>
+                              )}
+
+                              {ev.allergens_notes && (
+                                <p className="text-xs text-rose-200 bg-rose-950/40 border border-rose-800/50 rounded-xl px-3 py-1.5">
+                                  <strong>Alérgenos / Dietas:</strong> {ev.allergens_notes}
+                                </p>
+                              )}
+
+                              {ev.extras_notes && (
+                                <p className="text-xs text-sky-100/85 bg-[#0c1d3d]/90 border border-sky-900/60 rounded-xl px-3 py-1.5">
+                                  <strong>Material / Extras:</strong> {ev.extras_notes}
+                                </p>
+                              )}
+
+                              <AttachmentPreview
+                                url={ev.attachment_url}
+                                name={ev.attachment_name}
+                                onOpenImage={setPreviewImageUrl}
+                              />
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* 4. @INCIDENCIAS */}
+        {activeTab === 'incidencias' && (
+          <div className="space-y-4">
+            <form
+              onSubmit={handleAddIncidence}
+              className="bg-[#0c1d3d]/95 border border-sky-900/80 rounded-2xl p-4 space-y-3 shadow-lg"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-rose-300">
+                  @Incidencias · {activeOutletForWrite}
+                </h2>
+                <select
+                  value={incSeverity}
+                  onChange={(e) => setIncSeverity(e.target.value)}
+                  className="bg-[#061124] border border-sky-800 rounded-xl px-2.5 py-1 text-xs text-sky-100"
+                >
+                  <option value="baja">Gravedad baja</option>
+                  <option value="media">Gravedad media</option>
+                  <option value="alta">Gravedad alta</option>
+                </select>
+              </div>
+
+              <input
+                type="text"
+                required
+                value={incTitle}
+                onChange={(e) => setIncTitle(e.target.value)}
+                placeholder="Título de la incidencia (ej. Avería cafetera, rotura cristalería, fallo TPV...)"
+                className="w-full bg-[#061124] border border-sky-900/80 rounded-xl px-3.5 py-2 text-sm text-white placeholder:text-slate-500"
+              />
+
+              <textarea
+                rows={2}
+                value={incDetails}
+                onChange={(e) => setIncDetails(e.target.value)}
+                placeholder="Detalles de la incidencia, parte dado o seguimiento..."
+                className="w-full bg-[#061124] border border-sky-900/80 rounded-xl px-3.5 py-2 text-xs text-white placeholder:text-slate-500"
+              />
+
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <label className="flex items-center gap-2 text-xs text-sky-200 bg-[#061124] border border-sky-800/80 px-3 py-1.5 rounded-xl cursor-pointer hover:border-sky-500">
+                  <Paperclip className="w-3.5 h-3.5 text-rose-400" />
+                  <span>{incFile ? incFile.name : 'Adjuntar foto o archivo'}</span>
+                  <input
+                    type="file"
+                    accept="image/*,.pdf"
+                    onChange={(e) => setIncFile(e.target.files?.[0] || null)}
+                    className="hidden"
+                  />
                 </label>
+
                 <button
                   type="submit"
-                  className="bg-gradient-to-r from-cyan-400 to-blue-600 hover:from-cyan-300 hover:to-blue-500 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-md"
+                  disabled={uploadingFile}
+                  className="bg-gradient-to-r from-rose-500 to-pink-600 hover:from-rose-400 hover:to-pink-500 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-md"
                 >
-                  Guardar evento
+                  {uploadingFile ? 'Subiendo...' : 'Registrar incidencia'}
                 </button>
               </div>
             </form>
 
             <div className="space-y-2.5">
-              {banquetsForDate.length === 0 ? (
+              {filteredIncidences.length === 0 ? (
                 <div className="bg-[#0c1d3d]/40 border border-dashed border-sky-900/70 rounded-2xl p-8 text-center text-xs text-sky-300/60">
-                  No hay eventos cargados para el {banquetDate}.
+                  No hay incidencias en esta vista.
                 </div>
               ) : (
-                banquetsForDate.map((ev) => (
+                filteredIncidences.map((inc) => (
                   <div
-                    key={ev.id}
-                    className={`bg-[#0c1d3d]/95 border rounded-2xl p-4 space-y-2.5 ${
-                      ev.last_minute_change ? 'border-amber-400/70' : 'border-sky-900/80'
+                    key={inc.id}
+                    className={`bg-[#0c1d3d]/95 border rounded-2xl p-4 space-y-2 ${
+                      inc.status === 'resuelta' ? 'border-sky-900/40 opacity-65' : 'border-rose-500/40'
                     }`}
                   >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-200 border border-cyan-400/30">
-                          {ev.start_time} · {ev.salon_name}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-sky-500/20 text-sky-200">
+                          {inc.outlet}
                         </span>
-                        <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-sky-500/15 text-sky-200 flex items-center gap-1">
-                          <Users className="w-3.5 h-3.5" />
-                          {ev.pax} PAX · {ev.setup_type}
+                        <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-rose-500/20 text-rose-300">
+                          {inc.severity}
                         </span>
                       </div>
 
                       <div className="flex items-center gap-1.5">
-                        <select
-                          value={ev.setup_status}
-                          onChange={(e) => updateBanquetStatus(ev, e.target.value)}
-                          className="bg-[#061124] border border-sky-700 rounded-lg px-2 py-1 text-xs font-semibold text-sky-200"
-                        >
-                          {SETUP_STATUSES.map((st) => (
-                            <option key={st} value={st}>
-                              {st}
-                            </option>
-                          ))}
-                        </select>
                         <button
-                          onClick={() => deleteBanquetEvent(ev)}
+                          onClick={() => toggleIncidenceStatus(inc)}
+                          className={`text-[11px] font-bold px-2.5 py-0.5 rounded-lg border ${
+                            inc.status === 'resuelta'
+                              ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                              : 'bg-rose-500/15 text-rose-300 border-rose-500/30'
+                          }`}
+                        >
+                          {inc.status === 'resuelta' ? 'Resuelta ✓' : 'Abierta · Resolver'}
+                        </button>
+                        <button
+                          onClick={() => deleteIncidence(inc)}
                           className="text-slate-500 hover:text-rose-400 p-1"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -1086,26 +1754,20 @@ export default function App() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-bold text-white">{ev.event_name}</h3>
-                      {ev.last_minute_change && (
-                        <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-400/40">
-                          ¡Cambio última hora!
-                        </span>
-                      )}
-                    </div>
-
-                    {ev.allergens_notes && (
-                      <p className="text-xs text-rose-200 bg-rose-950/40 border border-rose-800/50 rounded-xl px-3 py-1.5">
-                        <strong>Alérgenos / Dietas:</strong> {ev.allergens_notes}
-                      </p>
-                    )}
-
-                    {ev.extras_notes && (
-                      <p className="text-xs text-sky-100/85 bg-[#061124]/80 border border-sky-900/60 rounded-xl px-3 py-1.5">
-                        <strong>Material / Extras:</strong> {ev.extras_notes}
-                      </p>
-                    )}
+                    <p
+                      className={`text-sm font-bold ${
+                        inc.status === 'resuelta' ? 'line-through text-slate-400' : 'text-white'
+                      }`}
+                    >
+                      {inc.title}
+                    </p>
+                    {inc.details && <p className="text-xs text-sky-100/80">{inc.details}</p>}
+                    <AttachmentPreview
+                      url={inc.attachment_url}
+                      name={inc.attachment_name}
+                      onOpenImage={setPreviewImageUrl}
+                    />
+                    <p className="text-[11px] text-sky-300/60">Por {inc.reported_by}</p>
                   </div>
                 ))
               )}
@@ -1113,6 +1775,121 @@ export default function App() {
           </div>
         )}
 
+        {/* 5. @PETICIONES DE HABITACIONES */}
+        {activeTab === 'habitaciones' && (
+          <div className="space-y-4">
+            <form
+              onSubmit={handleAddRoomRequest}
+              className="bg-[#0c1d3d]/95 border border-sky-900/80 rounded-2xl p-4 space-y-3 shadow-lg"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-teal-300">
+                  @Peticiones de Habitaciones ({activeOutletForWrite})
+                </h2>
+                <input
+                  type="date"
+                  value={reqDate}
+                  onChange={(e) => setReqDate(e.target.value)}
+                  className="bg-[#061124] border border-sky-800 rounded-xl px-3 py-1.5 text-xs text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <input
+                  type="text"
+                  required
+                  value={reqRoom}
+                  onChange={(e) => setReqRoom(e.target.value)}
+                  placeholder="Nº Habitación (ej. 314)"
+                  className="bg-[#061124] border border-sky-800 rounded-xl px-3 py-2 text-sm text-white placeholder:text-slate-500"
+                />
+                <input
+                  type="text"
+                  required
+                  value={reqText}
+                  onChange={(e) => setReqText(e.target.value)}
+                  placeholder="Petición del huésped (alergia, mesa, hora, detalle...)"
+                  className="sm:col-span-2 bg-[#061124] border border-sky-800 rounded-xl px-3 py-2 text-sm text-white placeholder:text-slate-500"
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={reqNotes}
+                  onChange={(e) => setReqNotes(e.target.value)}
+                  placeholder="Notas adicionales para el equipo..."
+                  className="flex-1 bg-[#061124]/80 border border-sky-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder:text-slate-500"
+                />
+                <button
+                  type="submit"
+                  className="bg-gradient-to-r from-teal-400 to-cyan-500 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs shadow-md"
+                >
+                  Añadir petición
+                </button>
+              </div>
+            </form>
+
+            <div className="space-y-2.5">
+              {filteredRoomRequests.length === 0 ? (
+                <div className="bg-[#0c1d3d]/40 border border-dashed border-sky-900/70 rounded-2xl p-8 text-center text-xs text-sky-300/60">
+                  No hay peticiones de habitaciones en esta vista.
+                </div>
+              ) : (
+                filteredRoomRequests.map((r) => (
+                  <div
+                    key={r.id}
+                    className={`bg-[#0c1d3d]/95 border rounded-2xl p-4 flex items-start justify-between gap-3 ${
+                      r.status === 'atendida' ? 'border-sky-900/40 opacity-65' : 'border-teal-500/40'
+                    }`}
+                  >
+                    <div className="space-y-1 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="inline-flex items-center gap-1 bg-teal-500/20 text-teal-200 border border-teal-400/30 px-2.5 py-0.5 rounded-lg text-xs font-bold">
+                          <BedDouble className="w-3.5 h-3.5" />
+                          Hab. {r.room_number}
+                        </span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-sky-500/15 text-sky-200">
+                          {r.outlet} · {r.request_date}
+                        </span>
+                      </div>
+                      <p
+                        className={`text-sm font-semibold ${
+                          r.status === 'atendida' ? 'line-through text-slate-400' : 'text-white'
+                        }`}
+                      >
+                        {r.request_text}
+                      </p>
+                      {r.notes && <p className="text-xs text-sky-100/75">{r.notes}</p>}
+                      <p className="text-[11px] text-sky-300/60">Por {r.created_by}</p>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => toggleRoomRequest(r)}
+                        className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border ${
+                          r.status === 'atendida'
+                            ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                            : 'bg-teal-500/15 text-teal-200 border-teal-400/30'
+                        }`}
+                      >
+                        {r.status === 'atendida' ? 'Atendida ✓' : 'Pendiente'}
+                      </button>
+                      <button
+                        onClick={() => deleteRoomRequest(r)}
+                        className="text-slate-500 hover:text-rose-400 p-1"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 6. CHECKLIST */}
         {activeTab === 'checklist' && (
           <div className="space-y-3.5">
             <form
@@ -1148,7 +1925,7 @@ export default function App() {
                 type="text"
                 value={newTaskNotes}
                 onChange={(e) => setNewTaskNotes(e.target.value)}
-                placeholder="Nota opcional (APPCC, temperaturas, mise en place...)"
+                placeholder="Nota opcional..."
                 className="w-full bg-[#061124]/70 border border-sky-900/70 rounded-xl px-3.5 py-1.5 text-xs text-slate-300 placeholder:text-slate-500 focus:outline-none"
               />
             </form>
@@ -1206,6 +1983,7 @@ export default function App() {
           </div>
         )}
 
+        {/* 7. PENDIENTES */}
         {activeTab === 'pending' && (
           <div className="space-y-3.5">
             <div className="bg-[#0c1d3d]/95 border border-sky-900/80 rounded-2xl p-3.5 flex items-center justify-between gap-3">
@@ -1290,138 +2068,17 @@ export default function App() {
           </div>
         )}
 
-        {activeTab === 'complaints' && (
-          <div className="space-y-4">
-            <form
-              onSubmit={handleAddComplaint}
-              className="bg-[#0c1d3d]/95 border border-sky-900/80 rounded-2xl p-4 space-y-3 shadow-lg"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-amber-300">
-                  Registro de Cliente ({activeOutletForWrite})
-                </h2>
-                <select
-                  value={recordType}
-                  onChange={(e) => setRecordType(e.target.value)}
-                  className="bg-[#061124] border border-sky-800 rounded-xl px-2.5 py-1 text-xs text-sky-100"
-                >
-                  <option value="queja">Queja / Incidencia</option>
-                  <option value="solicitud">Solicitud especial</option>
-                  <option value="vip">VIP / Celebración</option>
-                  <option value="cortesia">Cortesía / Invitación</option>
-                </select>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <BedDouble className="w-4 h-4 text-amber-400 shrink-0" />
-                <input
-                  type="text"
-                  required
-                  value={roomNumber}
-                  onChange={(e) => setRoomNumber(e.target.value)}
-                  placeholder="Habitación, Mesa o Nombre del cliente (ej. Hab. 208)"
-                  className="w-full bg-[#061124] border border-sky-900/80 rounded-xl px-3 py-2 text-sm text-white placeholder:text-slate-500"
-                />
-              </div>
-
-              <textarea
-                required
-                rows={2}
-                value={complaintText}
-                onChange={(e) => setComplaintText(e.target.value)}
-                placeholder="Qué ocurrió, qué solicita el cliente o detalle VIP..."
-                className="w-full bg-[#061124] border border-sky-900/80 rounded-xl px-3 py-2 text-sm text-white placeholder:text-slate-500"
-              />
-
-              <textarea
-                required
-                rows={2}
-                value={managerResponse}
-                onChange={(e) => setManagerResponse(e.target.value)}
-                placeholder="Solución dada por el Maître / 2º Maître / Jefe de Sector..."
-                className="w-full bg-[#061124] border border-sky-900/80 rounded-xl px-3 py-2 text-sm text-white placeholder:text-slate-500"
-              />
-
-              <button
-                type="submit"
-                className="w-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 font-bold py-2.5 rounded-xl text-sm shadow-md"
-              >
-                Guardar en ficha de cliente
-              </button>
-            </form>
-
-            <div className="space-y-2.5">
-              {outletComplaints.length === 0 ? (
-                <div className="bg-[#0c1d3d]/40 border border-dashed border-sky-900/70 rounded-2xl p-8 text-center text-xs text-sky-300/60">
-                  Sin registros de clientes en esta vista.
-                </div>
-              ) : (
-                outletComplaints.map((c) => (
-                  <div
-                    key={c.id}
-                    className={`bg-[#0c1d3d]/95 border rounded-2xl p-4 space-y-2 ${
-                      c.status === 'cerrada' ? 'border-sky-900/40 opacity-65' : 'border-amber-500/40'
-                    }`}
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center gap-1.5">
-                        <span className="inline-flex items-center gap-1 bg-amber-500/15 text-amber-200 border border-amber-400/30 px-2.5 py-0.5 rounded-lg text-xs font-bold">
-                          {c.record_type === 'vip' ? (
-                            <Crown className="w-3.5 h-3.5" />
-                          ) : (
-                            <BedDouble className="w-3.5 h-3.5" />
-                          )}
-                          {c.room_number}
-                        </span>
-                        <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-sky-500/20 text-sky-200">
-                          {c.record_type || 'queja'} · {c.outlet}
-                        </span>
-                      </div>
-
-                      <button
-                        onClick={() => toggleComplaintStatus(c)}
-                        className={`text-[11px] font-bold px-2.5 py-0.5 rounded-lg border ${
-                          c.status === 'cerrada'
-                            ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
-                            : 'bg-rose-500/15 text-rose-300 border-rose-500/30'
-                        }`}
-                      >
-                        {c.status === 'cerrada' ? 'Cerrada ✓' : 'Abierta · Cerrar'}
-                      </button>
-                    </div>
-
-                    <p className="text-xs text-slate-100">
-                      <strong className="text-amber-300">Detalle:</strong> {c.complaint_text}
-                    </p>
-                    <p className="text-xs text-slate-100 bg-[#061124]/90 border border-sky-900/70 rounded-xl p-2.5">
-                      <strong className="text-emerald-400">Gestión / Respuesta:</strong>{' '}
-                      {c.manager_response}
-                    </p>
-                    <p className="text-[11px] text-sky-300/60">
-                      Por {c.reported_by} ·{' '}
-                      {new Date(c.created_at).toLocaleString('es-ES', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </p>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        )}
-
+        {/* 8. CALENDARIO INDEPENDIENTE + REGISTRO */}
         {activeTab === 'calendar' && (
           <div className="space-y-4">
             <form
               onSubmit={handleAddCalendarEvent}
               className="bg-[#0c1d3d]/95 border border-sky-900/80 rounded-2xl p-4 space-y-3 shadow-lg"
             >
-              <div className="flex items-center justify-between gap-2">
-                <h2 className="text-xs font-bold uppercase tracking-wider text-indigo-300">
-                  Calendario operativo editable
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-indigo-300 flex items-center gap-1.5">
+                  <CalendarIcon className="w-4 h-4 text-indigo-400" />
+                  <span>Calendario Operativo Independiente</span>
                 </h2>
                 <input
                   type="date"
@@ -1436,7 +2093,7 @@ export default function App() {
                 required
                 value={eventTitle}
                 onChange={(e) => setEventTitle(e.target.value)}
-                placeholder={`Anotación para el ${calendarDate} (${activeOutletForWrite})...`}
+                placeholder={`Evento o anotación para el ${calendarDate} (${activeOutletForWrite})...`}
                 className="w-full bg-[#061124] border border-sky-900/80 rounded-xl px-3 py-2 text-sm text-white placeholder:text-slate-500"
               />
 
@@ -1444,7 +2101,7 @@ export default function App() {
                 type="text"
                 value={eventDetails}
                 onChange={(e) => setEventDetails(e.target.value)}
-                placeholder="Detalle opcional (refuerzos, inventario, proveedores...)"
+                placeholder="Detalle opcional (horarios, grupo, refuerzos, notas)..."
                 className="w-full bg-[#061124]/70 border border-sky-900/70 rounded-xl px-3 py-1.5 text-xs text-slate-300 placeholder:text-slate-500"
               />
 
@@ -1452,28 +2109,46 @@ export default function App() {
                 type="submit"
                 className="w-full bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-400 hover:to-blue-500 text-white font-bold py-2.5 rounded-xl text-sm shadow-md"
               >
-                Añadir al calendario
+                Guardar en el calendario
               </button>
             </form>
 
-            <div className="space-y-2">
-              <p className="text-xs text-sky-200/70 px-1">
-                Anotaciones del <strong className="text-white">{calendarDate}</strong>:
+            {/* Alternar entre TODOS los eventos guardados o solo la fecha seleccionada */}
+            <div className="flex items-center justify-between gap-2 px-1">
+              <p className="text-xs text-sky-200/80">
+                {showAllCalendarEvents
+                  ? `Todos los eventos guardados (${visibleCalendarEvents.length})`
+                  : `Eventos del ${calendarDate} (${visibleCalendarEvents.length})`}
               </p>
-              {eventsForSelectedDate.length === 0 ? (
+              <button
+                type="button"
+                onClick={() => setShowAllCalendarEvents(!showAllCalendarEvents)}
+                className="text-xs font-bold px-3 py-1.5 rounded-xl bg-indigo-500/20 text-indigo-200 border border-indigo-400/40"
+              >
+                {showAllCalendarEvents ? 'Filtrar solo fecha elegida' : 'Ver todos los guardados'}
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              {visibleCalendarEvents.length === 0 ? (
                 <div className="bg-[#0c1d3d]/40 border border-dashed border-sky-900/70 rounded-2xl p-6 text-center text-xs text-sky-300/60">
-                  No hay notas en el calendario para esta fecha.
+                  No hay eventos guardados en este filtro.
                 </div>
               ) : (
-                eventsForSelectedDate.map((ev) => (
+                visibleCalendarEvents.map((ev) => (
                   <div
                     key={ev.id}
                     className="bg-[#0c1d3d]/95 border border-sky-900/80 rounded-2xl p-3.5 flex items-start justify-between gap-3"
                   >
                     <div>
-                      <span className="inline-block text-[11px] font-bold text-indigo-200 bg-indigo-500/20 border border-indigo-400/30 px-2 py-0.5 rounded-md mb-1">
-                        {ev.outlet}
-                      </span>
+                      <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                        <span className="text-[11px] font-bold text-indigo-200 bg-indigo-500/20 border border-indigo-400/30 px-2 py-0.5 rounded-md">
+                          {ev.event_date}
+                        </span>
+                        <span className="text-[11px] font-bold text-sky-200 bg-sky-500/15 px-2 py-0.5 rounded-md">
+                          {ev.outlet}
+                        </span>
+                      </div>
                       <p className="text-sm font-semibold text-white">{ev.title}</p>
                       {ev.details && <p className="text-xs text-sky-100/75 mt-0.5">{ev.details}</p>}
                       <p className="text-[11px] text-sky-300/60 mt-1">Por {ev.created_by}</p>
@@ -1489,6 +2164,7 @@ export default function App() {
               )}
             </div>
 
+            {/* Registro de actividad */}
             <div className="pt-2 space-y-2">
               <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-sky-300 px-1">
                 <History className="w-4 h-4" />
@@ -1519,6 +2195,73 @@ export default function App() {
           </div>
         )}
       </main>
+
+      {/* Visor de imagen adjunta */}
+      {previewImageUrl && (
+        <div
+          onClick={() => setPreviewImageUrl(null)}
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative max-w-2xl w-full bg-[#0c1d3d] border border-sky-800 rounded-2xl p-3 space-y-2 shadow-2xl"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-sky-200">Vista previa de imagen</span>
+              <button
+                onClick={() => setPreviewImageUrl(null)}
+                className="p-1.5 rounded-lg bg-[#061124] text-sky-200 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <img
+              src={previewImageUrl}
+              alt="Adjunto"
+              className="w-full max-h-[75vh] object-contain rounded-xl bg-black"
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AttachmentPreview({ url, name, onOpenImage }) {
+  if (!url) return null;
+
+  if (isImageUrl(url)) {
+    return (
+      <div className="pt-1">
+        <button
+          type="button"
+          onClick={() => onOpenImage(url)}
+          className="group relative inline-block overflow-hidden rounded-xl border border-sky-800/80 hover:border-sky-400 transition"
+        >
+          <img
+            src={url}
+            alt={name || 'Foto adjunta'}
+            className="h-24 w-36 object-cover group-hover:scale-105 transition"
+          />
+          <span className="block text-[10px] bg-[#061124]/90 text-sky-200 px-2 py-0.5 truncate max-w-[144px]">
+            {name || 'Ver foto'}
+          </span>
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="pt-1">
+      <a
+        href={url}
+        target="_blank"
+        rel="noreferrer"
+        className="inline-flex items-center gap-1.5 text-xs font-semibold text-cyan-300 bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-400/30 px-3 py-1.5 rounded-xl transition"
+      >
+        <FileText className="w-3.5 h-3.5" />
+        <span>{name || 'Abrir archivo adjunto'}</span>
+      </a>
     </div>
   );
 }
