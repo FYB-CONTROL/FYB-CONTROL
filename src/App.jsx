@@ -1169,34 +1169,49 @@ export default function App() {
   // AVISOS DE ÚLTIMA HORA
   async function handleAddAviso(e) {
     e.preventDefault();
-    if (!avisoTitulo.trim() || !avisoMensaje.trim()) return;
+    if (!avisoTitulo.trim() || !avisoMensaje.trim()) {
+      alert('Completa el título y el mensaje antes de publicar.');
+      return;
+    }
+
+    if (!session) {
+      alert('No hay sesión activa. Inicia sesión nuevamente.');
+      return;
+    }
 
     const actor = profileName || session.user.email;
 
-    const { data, error } = await supabase
-      .from('avisos_ultima_hora')
-      .insert([
-        {
-          titulo: avisoTitulo.trim(),
-          mensaje: avisoMensaje.trim(),
-          prioridad: avisoPrioridad,
-          fecha_expiracion: avisoFechaExpiracion || null,
-          creado_por: actor,
-        },
-      ])
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('avisos_ultima_hora')
+        .insert([
+          {
+            titulo: avisoTitulo.trim(),
+            mensaje: avisoMensaje.trim(),
+            prioridad: avisoPrioridad,
+            fecha_expiracion: avisoFechaExpiracion || null,
+            creado_por: actor,
+          },
+        ])
+        .select()
+        .single();
 
-    if (!error && data) {
-      setAvisos((prev) => [data, ...prev]);
-      await addLog('Registró aviso última hora', avisoTitulo.trim());
-      setAvisoTitulo('');
-      setAvisoMensaje('');
-      setAvisoPrioridad('alta');
-      setAvisoFechaExpiracion('');
-      setEditingAvisoId(null);
-    } else if (error) {
-      alert(`Error al registrar aviso: ${error.message}`);
+      if (error) {
+        alert(`Error al registrar aviso: ${error.message}`);
+        return;
+      }
+
+      if (data) {
+        setAvisos((prev) => [data, ...prev]);
+        await addLog('Registró aviso última hora', avisoTitulo.trim());
+        setAvisoTitulo('');
+        setAvisoMensaje('');
+        setAvisoPrioridad('alta');
+        setAvisoFechaExpiracion('');
+        setEditingAvisoId(null);
+      }
+    } catch (err) {
+      alert(`Error inesperado al registrar aviso: ${err.message}`);
     }
   }
 
