@@ -1124,6 +1124,34 @@ export default function App() {
       inc.status !== 'resuelta'
   );
 
+  const pendingTasksTotal = tasks.filter(
+    (t) =>
+      matchesOutlet(t.outlet) &&
+      t.section === 'pending' &&
+      !t.completed
+  );
+
+  const pendingTasksOnTime = pendingTasksTotal.filter(
+    (t) => !t.due_date || t.due_date >= todayStr
+  );
+
+  const openIncidencesTotal = incidences.filter(
+    (inc) => matchesOutlet(inc.outlet) && inc.status !== 'resuelta'
+  );
+
+  const openComplaintsTotal = complaints.filter(
+    (c) => matchesOutlet(c.outlet) && c.status !== 'cerrada'
+  );
+
+  const pendingRoomRequestsTotal = roomRequests.filter(
+    (r) => matchesOutlet(r.outlet) && r.status !== 'atendida'
+  );
+
+  const upcomingEvents = events
+    .filter((ev) => matchesOutlet(ev.outlet) && ev.event_date >= todayStr)
+    .sort((a, b) => a.event_date.localeCompare(b.event_date))
+    .slice(0, 5);
+
   const firstDayOfMonthObj = new Date(calViewYear, calViewMonth, 1);
   const daysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate();
   const startOffset = (firstDayOfMonthObj.getDay() + 6) % 7;
@@ -1559,42 +1587,133 @@ export default function App() {
                 </div>
               )}
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              <button
-                onClick={() => {
-                  setSelectedDate(todayStr);
-                  setActiveTab('pending');
-                }}
-                className="bg-white hover:bg-amber-50 border-2 border-slate-950 rounded-2xl p-3 text-left transition"
-              >
-                <p className="text-[11px] font-bold text-slate-700">Pendientes hoy</p>
-                <p className="text-2xl font-black text-slate-950 mt-0.5">{todayPendingItems.length}</p>
-              </button>
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+                <button
+                  onClick={() => {
+                    setSelectedDate(todayStr);
+                    setActiveTab('pending');
+                  }}
+                  className={`bg-white border-2 rounded-2xl p-3 text-left transition hover:shadow-sm ${
+                    overdueTasks.length > 0
+                      ? 'border-rose-400 bg-rose-50/50'
+                      : 'border-slate-950'
+                  }`}
+                >
+                  <div className="flex items-start gap-2">
+                    <CalendarClock className="w-5 h-5 text-slate-950 shrink-0" />
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-700">
+                        Tareas Pendientes
+                      </p>
+                      <p className="text-2xl font-black text-slate-950 mt-0.5">
+                        {pendingTasksTotal.length}
+                      </p>
+                      <p className="text-[10px] font-bold mt-0.5 ${
+                        overdueTasks.length > 0 ? 'text-rose-700' : 'text-slate-600'
+                      }">
+                        {pendingTasksOnTime.length} en plazo ·
+                        {overdueTasks.length} vencidas
+                      </p>
+                    </div>
+                  </div>
+                </button>
 
-              <button
-                onClick={() => setActiveTab('complaints')}
-                className="bg-amber-300 hover:bg-amber-400 border-2 border-slate-950 rounded-2xl p-3 text-left transition"
-              >
-                <p className="text-[11px] font-black text-slate-950">Quejas hoy</p>
-                <p className="text-2xl font-black text-slate-950 mt-0.5">{todayComplaintsItems.length}</p>
-              </button>
+                <button
+                  onClick={() => setActiveTab('incidencias')}
+                  className={`bg-white border-2 rounded-2xl p-3 text-left transition hover:shadow-sm ${
+                    highSeverityIncidences.length > 0
+                      ? 'border-rose-400 bg-rose-50/50'
+                      : 'border-slate-950'
+                  }`}
+                >
+                  <div className="flex items-start gap-2">
+                    <AlertOctagon className="w-5 h-5 text-slate-950 shrink-0" />
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-700">
+                        Incidencias Abiertas
+                      </p>
+                      <p className="text-2xl font-black text-slate-950 mt-0.5">
+                        {openIncidencesTotal.length}
+                      </p>
+                      <p className="text-[10px] font-bold mt-0.5 ${
+                        highSeverityIncidences.length > 0
+                          ? 'text-rose-700'
+                          : 'text-slate-600'
+                      }">
+                        {highSeverityIncidences.length} gravedad alta
+                      </p>
+                    </div>
+                  </div>
+                </button>
 
-              <button
-                onClick={() => setActiveTab('incidencias')}
-                className="bg-white hover:bg-amber-50 border-2 border-slate-950 rounded-2xl p-3 text-left transition"
-              >
-                <p className="text-[11px] font-bold text-slate-700">Incidencias hoy</p>
-                <p className="text-2xl font-black text-slate-950 mt-0.5">{todayIncidencesItems.length}</p>
-              </button>
+                <button
+                  onClick={() => setActiveTab('complaints')}
+                  className={`bg-white border-2 rounded-2xl p-3 text-left transition hover:shadow-sm ${
+                    openComplaintsTotal.length > 0
+                      ? 'border-amber-400 bg-amber-50/50'
+                      : 'border-slate-950'
+                  }`}
+                >
+                  <div className="flex items-start gap-2">
+                    <MessageSquareWarning className="w-5 h-5 text-slate-950 shrink-0" />
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-700">
+                        Quejas / VIP
+                      </p>
+                      <p className="text-2xl font-black text-slate-950 mt-0.5">
+                        {openComplaintsTotal.length}
+                      </p>
+                      <p className="text-[10px] font-bold mt-0.5 text-slate-600">
+                        Pendientes de respuesta
+                      </p>
+                    </div>
+                  </div>
+                </button>
 
-              <button
-                onClick={() => setActiveTab('habitaciones')}
-                className="bg-white hover:bg-amber-50 border-2 border-slate-950 rounded-2xl p-3 text-left transition"
-              >
-                <p className="text-[11px] font-bold text-slate-700">Habitaciones hoy</p>
-                <p className="text-2xl font-black text-slate-950 mt-0.5">{todayRoomRequestsItems.length}</p>
-              </button>
-            </div>
+                <button
+                  onClick={() => setActiveTab('habitaciones')}
+                  className={`bg-white border-2 rounded-2xl p-3 text-left transition hover:shadow-sm ${
+                    pendingRoomRequestsTotal.length > 0
+                      ? 'border-sky-400 bg-sky-50/50'
+                      : 'border-slate-950'
+                  }`}
+                >
+                  <div className="flex items-start gap-2">
+                    <BedDouble className="w-5 h-5 text-slate-950 shrink-0" />
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-700">
+                        Habitaciones Pendientes
+                      </p>
+                      <p className="text-2xl font-black text-slate-950 mt-0.5">
+                        {pendingRoomRequestsTotal.length}
+                      </p>
+                      <p className="text-[10px] font-bold mt-0.5 text-slate-600">
+                        Por atender
+                      </p>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('calendar')}
+                  className="bg-white border-2 border-slate-950 rounded-2xl p-3 text-left transition hover:shadow-sm"
+                >
+                  <div className="flex items-start gap-2">
+                    <CalendarDays className="w-5 h-5 text-slate-950 shrink-0" />
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-wider text-slate-700">
+                        Próximos Eventos
+                      </p>
+                      <p className="text-2xl font-black text-slate-950 mt-0.5">
+                        {upcomingEvents.length}
+                      </p>
+                      <p className="text-[10px] font-bold mt-0.5 text-slate-600">
+                        Próximos servicios
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               <div className="bg-white border-2 border-slate-950 rounded-2xl p-4 space-y-2.5">
