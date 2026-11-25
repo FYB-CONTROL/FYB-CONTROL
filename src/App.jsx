@@ -1100,6 +1100,30 @@ export default function App() {
     return dateMatch && matchesSearch(`${ev.title} ${ev.details || ''} ${ev.outlet} ${ev.event_date}`);
   });
 
+  const overdueTasks = tasks.filter(
+    (t) =>
+      matchesOutlet(t.outlet) &&
+      t.section === 'pending' &&
+      !t.completed &&
+      t.due_date &&
+      t.due_date < todayStr
+  );
+
+  const tasksDueTomorrow = tasks.filter(
+    (t) =>
+      matchesOutlet(t.outlet) &&
+      t.section === 'pending' &&
+      !t.completed &&
+      t.due_date === tomorrowStr
+  );
+
+  const highSeverityIncidences = incidences.filter(
+    (inc) =>
+      matchesOutlet(inc.outlet) &&
+      inc.severity === 'alta' &&
+      inc.status !== 'resuelta'
+  );
+
   const firstDayOfMonthObj = new Date(calViewYear, calViewMonth, 1);
   const daysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate();
   const startOffset = (firstDayOfMonthObj.getDay() + 6) % 7;
@@ -1455,15 +1479,87 @@ export default function App() {
                   Todo lo anotado hoy en Pendientes, Quejas, Incidencias y Habitaciones.
                 </p>
               </div>
-              <button
-                onClick={() => setActiveTab('complaints')}
-                className="px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 border-2 border-slate-950 text-xs font-black text-slate-950 shrink-0"
-              >
-                + Nueva Queja / VIP
-              </button>
-            </div>
+                <button
+                  onClick={() => setActiveTab('complaints')}
+                  className="px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 border-2 border-slate-950 text-xs font-black text-slate-950 shrink-0"
+                >
+                  + Nueva Queja / VIP
+                </button>
+              </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              {overdueTasks.length > 0 && (
+                <div className="bg-rose-50 border-2 border-rose-400 rounded-2xl p-3.5 space-y-1.5 mb-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 text-xs font-black text-slate-950">
+                      <AlertOctagon className="w-4 h-4 text-rose-700 shrink-0" />
+                      <span>Tareas vencidas ({overdueTasks.length})</span>
+                    </div>
+                    <button
+                      onClick={() => setActiveTab('pending')}
+                      className="text-[11px] font-black bg-slate-950 text-amber-400 px-2.5 py-1 rounded-lg"
+                    >
+                      Ver Pendientes
+                    </button>
+                  </div>
+                  <div className="space-y-1">
+                    {overdueTasks.map((t) => (
+                      <p key={t.id} className="text-xs font-bold text-slate-950">
+                        • [{t.outlet}] {t.title} · vencida el {t.due_date}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {tasksDueTomorrow.length > 0 && (
+                <div className="bg-amber-50 border-2 border-slate-950 rounded-2xl p-3.5 space-y-1.5 mb-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 text-xs font-black text-slate-950">
+                      <CalendarClock className="w-4 h-4 text-slate-950 shrink-0" />
+                      <span>Tareas que vencen mañana ({tasksDueTomorrow.length})</span>
+                    </div>
+                    <button
+                      onClick={() => setActiveTab('pending')}
+                      className="text-[11px] font-black bg-slate-950 text-amber-400 px-2.5 py-1 rounded-lg"
+                    >
+                      Ver Pendientes
+                    </button>
+                  </div>
+                  <div className="space-y-1">
+                    {tasksDueTomorrow.map((t) => (
+                      <p key={t.id} className="text-xs font-bold text-slate-950">
+                        • [{t.outlet}] {t.title} · vence mañana
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {highSeverityIncidences.length > 0 && (
+                <div className="bg-rose-50 border-2 border-rose-400 rounded-2xl p-3.5 space-y-1.5 mb-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 text-xs font-black text-slate-950">
+                      <AlertOctagon className="w-4 h-4 text-rose-700 shrink-0" />
+                      <span>Incidencias de gravedad alta abiertas ({highSeverityIncidences.length})</span>
+                    </div>
+                    <button
+                      onClick={() => setActiveTab('incidencias')}
+                      className="text-[11px] font-black bg-slate-950 text-amber-400 px-2.5 py-1 rounded-lg"
+                    >
+                      Ver Incidencias
+                    </button>
+                  </div>
+                  <div className="space-y-1">
+                    {highSeverityIncidences.map((inc) => (
+                      <p key={inc.id} className="text-xs font-bold text-slate-950">
+                        • [{inc.outlet}] {inc.title} · {inc.severity}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               <button
                 onClick={() => {
                   setSelectedDate(todayStr);
