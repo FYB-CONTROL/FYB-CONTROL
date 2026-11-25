@@ -3268,82 +3268,100 @@ export default function App() {
                 <span>{editingCambioId ? 'Editar cambio de turno' : 'Nuevo cambio de turno'}</span>
               </h2>
 
-              <form onSubmit={editingCambioId ? handleEditCambioTurno : handleAddCambioTurno} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-black text-slate-700">Empleado que cambia</label>
-                  <input
-                    type="text"
-                    value={cambioEmp1}
-                    onChange={(e) => setCambioEmp1(e.target.value)}
-                    placeholder="Ej. Juan"
-                    className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
-                  />
+              <form onSubmit={editingCambioId ? handleEditCambioTurno : handleAddCambioTurno} className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="bg-amber-50 border-2 border-slate-950 rounded-xl p-3 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-slate-950" />
+                      <span className="text-xs font-black uppercase text-slate-950">Turno 1</span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] font-black text-slate-700">Empleado</label>
+                      <input
+                        type="text"
+                        value={cambioEmp1}
+                        onChange={(e) => setCambioEmp1(e.target.value)}
+                        placeholder="Ej. Juan"
+                        className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-black text-slate-700">Fecha</label>
+                        <input
+                          type="date"
+                          value={cambioFecha1}
+                          onChange={(e) => setCambioFecha1(e.target.value)}
+                          className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-black text-slate-700">Entrada</label>
+                        <input
+                          type="time"
+                          value={cambioHoraEnt1}
+                          onChange={(e) => setCambioHoraEnt1(e.target.value)}
+                          className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-black text-slate-700">Salida</label>
+                        <input
+                          type="time"
+                          value={cambioHoraSal1}
+                          onChange={(e) => setCambioHoraSal1(e.target.value)}
+                          className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-amber-50 border-2 border-slate-950 rounded-xl p-3 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-slate-950" />
+                      <span className="text-xs font-black uppercase text-slate-950">Turno 2</span>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] font-black text-slate-700">Empleado</label>
+                      <input
+                        type="text"
+                        value={cambioEmp2}
+                        onChange={(e) => setCambioEmp2(e.target.value)}
+                        placeholder="Ej. Alejandro"
+                        className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-black text-slate-700">Fecha</label>
+                        <input
+                          type="date"
+                          value={cambioFecha2}
+                          onChange={(e) => setCambioFecha2(e.target.value)}
+                          className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-black text-slate-700">Entrada</label>
+                        <input
+                          type="time"
+                          value={cambioHoraEnt2}
+                          onChange={(e) => setCambioHoraEnt2(e.target.value)}
+                          className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[10px] font-black text-slate-700">Salida</label>
+                        <input
+                          type="time"
+                          value={cambioHoraSal2}
+                          onChange={(e) => setCambioHoraSal2(e.target.value)}
+                          className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-black text-slate-700">Empleado con quien intercambia</label>
-                  <input
-                    type="text"
-                    value={cambioEmp2}
-                    onChange={(e) => setCambioEmp2(e.target.value)}
-                    placeholder="Ej. Pedro"
-                    className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-black text-slate-700">Fecha turno 1</label>
-                  <input
-                    type="date"
-                    value={cambioFecha1}
-                    onChange={(e) => setCambioFecha1(e.target.value)}
-                    className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-black text-slate-700">Entrada turno 1</label>
-                  <input
-                    type="time"
-                    value={cambioHoraEnt1}
-                    onChange={(e) => setCambioHoraEnt1(e.target.value)}
-                    className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-black text-slate-700">Salida turno 1</label>
-                  <input
-                    type="time"
-                    value={cambioHoraSal1}
-                    onChange={(e) => setCambioHoraSal1(e.target.value)}
-                    className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-black text-slate-700">Fecha turno 2</label>
-                  <input
-                    type="date"
-                    value={cambioFecha2}
-                    onChange={(e) => setCambioFecha2(e.target.value)}
-                    className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-black text-slate-700">Entrada turno 2</label>
-                  <input
-                    type="time"
-                    value={cambioHoraEnt2}
-                    onChange={(e) => setCambioHoraEnt2(e.target.value)}
-                    className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-[10px] font-black text-slate-700">Salida turno 2</label>
-                  <input
-                    type="time"
-                    value={cambioHoraSal2}
-                    onChange={(e) => setCambioHoraSal2(e.target.value)}
-                    className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
-                  />
-                </div>
-                <div className="flex flex-col gap-1 sm:col-span-2">
                   <label className="text-[10px] font-black text-slate-700">Observaciones</label>
                   <input
                     type="text"
@@ -3353,7 +3371,7 @@ export default function App() {
                     className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs text-slate-950"
                   />
                 </div>
-                <div className="flex flex-col gap-1 sm:col-span-2">
+                <div className="flex gap-2">
                   <button
                     type="submit"
                     className={`w-auto bg-slate-950 hover:bg-slate-800 text-amber-400 font-black px-4 py-2 rounded-xl border-2 border-slate-950 transition`}
