@@ -142,7 +142,8 @@ export default function App() {
   const [actividadHoraria, setActividadHoraria] = useState([]);
   const [actFecha, setActFecha] = useState(() => toLocalDateStr(new Date()));
   const [actPuntoVenta, setActPuntoVenta] = useState('Thalassa');
-  const [actFranja, setActFranja] = useState('');
+  const [actFranjaInicio, setActFranjaInicio] = useState('08:00');
+  const [actFranjaFin, setActFranjaFin] = useState('09:00');
   const [actNivel, setActNivel] = useState('medio');
   const [actEmpleados, setActEmpleados] = useState('');
   const [actObs, setActObs] = useState('');
@@ -1060,9 +1061,10 @@ export default function App() {
   // ESTADÍSTICAS Y HORAS PUNTA
   async function handleAddActividad(e) {
     e.preventDefault();
-    if (!actFecha || !actPuntoVenta || !actFranja) return;
+    if (!actFecha || !actPuntoVenta || !actFranjaInicio || !actFranjaFin) return;
 
     const actor = profileName || session.user.email;
+    const franjaHoraria = `${actFranjaInicio} - ${actFranjaFin}`;
 
     const { data, error } = await supabase
       .from('actividad_horaria')
@@ -1070,7 +1072,7 @@ export default function App() {
         {
           fecha: actFecha,
           punto_venta: actPuntoVenta,
-          franja_horaria: actFranja,
+          franja_horaria: franjaHoraria,
           nivel_actividad: actNivel,
           num_empleados: actEmpleados ? Number(actEmpleados) : null,
           observaciones: actObs.trim() || null,
@@ -1082,10 +1084,11 @@ export default function App() {
 
     if (!error && data) {
       setActividadHoraria((prev) => [data, ...prev]);
-      await addLog('Registró actividad horaria', `${actPuntoVenta} · ${actFranja}`);
+      await addLog('Registró actividad horaria', `${actPuntoVenta} · ${franjaHoraria}`);
       setActFecha(toLocalDateStr(new Date()));
       setActPuntoVenta('Thalassa');
-      setActFranja('');
+      setActFranjaInicio('08:00');
+      setActFranjaFin('09:00');
       setActNivel('medio');
       setActEmpleados('');
       setActObs('');
@@ -1098,16 +1101,17 @@ export default function App() {
   async function handleEditActividad(e) {
     e.preventDefault();
     if (!editingActividadId) return;
-    if (!actFecha || !actPuntoVenta || !actFranja) return;
+    if (!actFecha || !actPuntoVenta || !actFranjaInicio || !actFranjaFin) return;
 
     const actor = profileName || session.user.email;
+    const franjaHoraria = `${actFranjaInicio} - ${actFranjaFin}`;
 
     const { error } = await supabase
       .from('actividad_horaria')
       .update({
         fecha: actFecha,
         punto_venta: actPuntoVenta,
-        franja_horaria: actFranja,
+        franja_horaria: franjaHoraria,
         nivel_actividad: actNivel,
         num_empleados: actEmpleados ? Number(actEmpleados) : null,
         observaciones: actObs.trim() || null,
@@ -1116,10 +1120,11 @@ export default function App() {
 
     if (!error) {
       await loadActividadHoraria();
-      await addLog('Editó actividad horaria', `${actPuntoVenta} · ${actFranja}`);
+      await addLog('Editó actividad horaria', `${actPuntoVenta} · ${franjaHoraria}`);
       setActFecha(toLocalDateStr(new Date()));
       setActPuntoVenta('Thalassa');
-      setActFranja('');
+      setActFranjaInicio('08:00');
+      setActFranjaFin('09:00');
       setActNivel('medio');
       setActEmpleados('');
       setActObs('');
@@ -1405,11 +1410,24 @@ export default function App() {
 
   const diaNombreIndex = { Domingo: 0, Lunes: 1, Martes: 2, Miércoles: 3, Jueves: 4, Viernes: 5, Sábado: 6 };
 
+  function franjaCubreHora(franjaStr, horaStr) {
+    if (!franjaStr) return false;
+    const partes = franjaStr.split(' - ');
+    if (partes.length !== 2) return false;
+    const [hInicio, mInicio] = partes[0].split(':').map(Number);
+    const [hFin, mFin] = partes[1].split(':').map(Number);
+    const [hCelda, mCelda] = horaStr.split(':').map(Number);
+    const inicioMin = hInicio * 60 + mInicio;
+    const finMin = hFin * 60 + mFin;
+    const celdaMin = hCelda * 60 + mCelda;
+    return celdaMin >= inicioMin && celdaMin < finMin;
+  }
+
   function celdaCalorColor(dia, hora) {
     const registrosCelda = filteredActividad.filter((a) => {
       const fechaObj = new Date(a.fecha);
       const diaSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][fechaObj.getDay()];
-      return diaSemana === dia && a.franja_horaria.startsWith(hora);
+      return diaSemana === dia && franjaCubreHora(a.franja_horaria, hora);
     });
 
     if (registrosCelda.length === 0) return 'bg-slate-50';
@@ -1426,7 +1444,7 @@ export default function App() {
     const registrosCelda = filteredActividad.filter((a) => {
       const fechaObj = new Date(a.fecha);
       const diaSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][fechaObj.getDay()];
-      return diaSemana === dia && a.franja_horaria.startsWith(hora);
+      return diaSemana === dia && franjaCubreHora(a.franja_horaria, hora);
     });
 
     if (registrosCelda.length === 0) return '';
@@ -3714,29 +3732,22 @@ export default function App() {
                     </select>
                   </div>
                   <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-black text-slate-700">Franja horaria</label>
-                    <select
-                      value={actFranja}
-                      onChange={(e) => setActFranja(e.target.value)}
+                    <label className="text-[10px] font-black text-slate-700">Hora inicio</label>
+                    <input
+                      type="time"
+                      value={actFranjaInicio}
+                      onChange={(e) => setActFranjaInicio(e.target.value)}
                       className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
-                    >
-                      <option value="08:00-09:00">08:00 - 09:00</option>
-                      <option value="09:00-10:00">09:00 - 10:00</option>
-                      <option value="10:00-11:00">10:00 - 11:00</option>
-                      <option value="11:00-12:00">11:00 - 12:00</option>
-                      <option value="12:00-13:00">12:00 - 13:00</option>
-                      <option value="13:00-14:00">13:00 - 14:00</option>
-                      <option value="14:00-15:00">14:00 - 15:00</option>
-                      <option value="15:00-16:00">15:00 - 16:00</option>
-                      <option value="16:00-17:00">16:00 - 17:00</option>
-                      <option value="17:00-18:00">17:00 - 18:00</option>
-                      <option value="18:00-19:00">18:00 - 19:00</option>
-                      <option value="19:00-20:00">19:00 - 20:00</option>
-                      <option value="20:00-21:00">20:00 - 21:00</option>
-                      <option value="21:00-22:00">21:00 - 22:00</option>
-                      <option value="22:00-23:00">22:00 - 23:00</option>
-                      <option value="23:00-00:00">23:00 - 00:00</option>
-                    </select>
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-black text-slate-700">Hora fin</label>
+                    <input
+                      type="time"
+                      value={actFranjaFin}
+                      onChange={(e) => setActFranjaFin(e.target.value)}
+                      className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                    />
                   </div>
                 </div>
 
@@ -3789,7 +3800,8 @@ export default function App() {
                       onClick={() => {
                         setActFecha(toLocalDateStr(new Date()));
                         setActPuntoVenta('Thalassa');
-                        setActFranja('');
+                        setActFranjaInicio('08:00');
+                        setActFranjaFin('09:00');
                         setActNivel('medio');
                         setActEmpleados('');
                         setActObs('');
@@ -3921,7 +3933,13 @@ export default function App() {
                           onClick={() => {
                             setActFecha(a.fecha);
                             setActPuntoVenta(a.punto_venta);
-                            setActFranja(a.franja_horaria);
+                            {
+                              const partes = a.franja_horaria.split(' - ');
+                              if (partes.length === 2) {
+                                setActFranjaInicio(partes[0]);
+                                setActFranjaFin(partes[1]);
+                              }
+                            }
                             setActNivel(a.nivel_actividad);
                             setActEmpleados(String(a.num_empleados || ''));
                             setActObs(a.observaciones || '');
