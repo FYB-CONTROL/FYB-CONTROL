@@ -33,6 +33,7 @@ import {
   ChevronRight,
   Sun,
   Calendar as CalendarIcon,
+  BarChart3,
 } from 'lucide-react';
 
 const SUPABASE_URL = 'https://wqdxdhfdeudagfbveium.supabase.co';
@@ -136,6 +137,19 @@ export default function App() {
   const [cambioHoraSal2, setCambioHoraSal2] = useState('');
   const [cambioObs, setCambioObs] = useState('');
   const [editingCambioId, setEditingCambioId] = useState(null);
+
+  // ESTADÍSTICAS Y HORAS PUNTA
+  const [actividadHoraria, setActividadHoraria] = useState([]);
+  const [actFecha, setActFecha] = useState(() => toLocalDateStr(new Date()));
+  const [actPuntoVenta, setActPuntoVenta] = useState('Thalassa');
+  const [actFranja, setActFranja] = useState('');
+  const [actNivel, setActNivel] = useState('medio');
+  const [actEmpleados, setActEmpleados] = useState('');
+  const [actObs, setActObs] = useState('');
+  const [editingActividadId, setEditingActividadId] = useState(null);
+  const [actFiltroPunto, setActFiltroPunto] = useState('Todos');
+  const [actFiltroFecha, setActFiltroFecha] = useState('');
+  const [actFiltroSemana, setActFiltroSemana] = useState('');
 
   // Relevo
   const [handoverType, setHandoverType] = useState('relevo');
@@ -283,10 +297,21 @@ export default function App() {
     setCambiosTurno(data || []);
   }
 
+  async function loadActividadHoraria() {
+    const { data } = await supabase
+      .from('actividad_horaria')
+      .select('*')
+      .order('fecha', { ascending: true })
+      .order('franja_horaria', { ascending: true });
+
+    setActividadHoraria(data || []);
+  }
+
   useEffect(() => {
     if (!session) return;
     loadAllData();
     loadCambiosTurno();
+    loadActividadHoraria();
 
     const channel = supabase
       .channel('h10-fyb-sync-v9')
@@ -299,6 +324,7 @@ export default function App() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'room_requests' }, () => loadAllData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'audit_logs' }, () => loadAllData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'cambios_turno' }, () => loadCambiosTurno())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'actividad_horaria' }, () => loadActividadHoraria())
       .subscribe();
 
     return () => {
@@ -1031,6 +1057,89 @@ export default function App() {
     }
   }
 
+  // ESTADÍSTICAS Y HORAS PUNTA
+  async function handleAddActividad(e) {
+    e.preventDefault();
+    if (!actFecha || !actPuntoVenta || !actFranja) return;
+
+    const actor = profileName || session.user.email;
+
+    const { data, error } = await supabase
+      .from('actividad_horaria')
+      .insert([
+        {
+          fecha: actFecha,
+          punto_venta: actPuntoVenta,
+          franja_horaria: actFranja,
+          nivel_actividad: actNivel,
+          num_empleados: actEmpleados ? Number(actEmpleados) : null,
+          observaciones: actObs.trim() || null,
+          creado_por: actor,
+        },
+      ])
+      .select()
+      .single();
+
+    if (!error && data) {
+      setActividadHoraria((prev) => [data, ...prev]);
+      await addLog('Registró actividad horaria', `${actPuntoVenta} · ${actFranja}`);
+      setActFecha(toLocalDateStr(new Date()));
+      setActPuntoVenta('Thalassa');
+      setActFranja('');
+      setActNivel('medio');
+      setActEmpleados('');
+      setActObs('');
+      setEditingActividadId(null);
+    } else if (error) {
+      alert(`Error al registrar: ${error.message}`);
+    }
+  }
+
+  async function handleEditActividad(e) {
+    e.preventDefault();
+    if (!editingActividadId) return;
+    if (!actFecha || !actPuntoVenta || !actFranja) return;
+
+    const actor = profileName || session.user.email;
+
+    const { error } = await supabase
+      .from('actividad_horaria')
+      .update({
+        fecha: actFecha,
+        punto_venta: actPuntoVenta,
+        franja_horaria: actFranja,
+        nivel_actividad: actNivel,
+        num_empleados: actEmpleados ? Number(actEmpleados) : null,
+        observaciones: actObs.trim() || null,
+      })
+      .eq('id', editingActividadId);
+
+    if (!error) {
+      await loadActividadHoraria();
+      await addLog('Editó actividad horaria', `${actPuntoVenta} · ${actFranja}`);
+      setActFecha(toLocalDateStr(new Date()));
+      setActPuntoVenta('Thalassa');
+      setActFranja('');
+      setActNivel('medio');
+      setActEmpleados('');
+      setActObs('');
+      setEditingActividadId(null);
+    } else if (error) {
+      alert(`Error al editar: ${error.message}`);
+    }
+  }
+
+  async function deleteActividad(item) {
+    setActividadHoraria((prev) => prev.filter((a) => a.id !== item.id));
+    const { error } = await supabase.from('actividad_horaria').delete().eq('id', item.id);
+    if (error) {
+      alert(`No se pudo borrar: ${error.message}`);
+      await loadActividadHoraria();
+    } else {
+      await addLog('Eliminó actividad horaria', `${item.punto_venta} · ${item.franja_horaria}`);
+    }
+  }
+
   if (loadingAuth) {
     return (
       <div className="min-h-screen bg-white text-slate-900 flex items-center justify-center text-sm">
@@ -1268,6 +1377,63 @@ export default function App() {
     .filter((ev) => matchesOutlet(ev.outlet) && ev.event_date >= todayStr)
     .sort((a, b) => a.event_date.localeCompare(b.event_date))
     .slice(0, 5);
+
+  // ESTADÍSTICAS Y HORAS PUNTA - variables computadas
+  const filteredActividad = actividadHoraria.filter((a) => {
+    if (actFiltroPunto !== 'Todos' && a.punto_venta !== actFiltroPunto) return false;
+    if (actFiltroFecha && a.fecha !== actFiltroFecha) return false;
+    return true;
+  });
+
+  const actividadPorPunto = {};
+  filteredActividad.forEach((a) => {
+    if (!actividadPorPunto[a.punto_venta]) actividadPorPunto[a.punto_venta] = 0;
+    const nivelPeso = { bajo: 1, medio: 2, alto: 3, muy_alto: 4 }[a.nivel_actividad] || 0;
+    actividadPorPunto[a.punto_venta] += nivelPeso;
+  });
+
+  const puntoMasActivo = Object.entries(actividadPorPunto).sort((a, b) => b[1] - a[1])[0]?.[0] || '—';
+
+  const actividadPorFranja = {};
+  filteredActividad.forEach((a) => {
+    if (!actividadPorFranja[a.franja_horaria]) actividadPorFranja[a.franja_horaria] = 0;
+    const nivelPeso = { bajo: 1, medio: 2, alto: 3, muy_alto: 4 }[a.nivel_actividad] || 0;
+    actividadPorFranja[a.franja_horaria] += nivelPeso;
+  });
+
+  const franjaPunta = Object.entries(actividadPorFranja).sort((a, b) => b[1] - a[1])[0]?.[0] || '—';
+
+  const diaNombreIndex = { Domingo: 0, Lunes: 1, Martes: 2, Miércoles: 3, Jueves: 4, Viernes: 5, Sábado: 6 };
+
+  function celdaCalorColor(dia, hora) {
+    const registrosCelda = filteredActividad.filter((a) => {
+      const fechaObj = new Date(a.fecha);
+      const diaSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][fechaObj.getDay()];
+      return diaSemana === dia && a.franja_horaria.startsWith(hora);
+    });
+
+    if (registrosCelda.length === 0) return 'bg-slate-50';
+    const niveles = registrosCelda.map((a) => ({ bajo: 1, medio: 2, alto: 3, muy_alto: 4 }[a.nivel_actividad] || 0));
+    const promedio = niveles.reduce((a, b) => a + b, 0) / niveles.length;
+
+    if (promedio >= 3.5) return 'bg-rose-200';
+    if (promedio >= 2.5) return 'bg-orange-200';
+    if (promedio >= 1.5) return 'bg-amber-200';
+    return 'bg-green-200';
+  }
+
+  function celdaCalorValor(dia, hora) {
+    const registrosCelda = filteredActividad.filter((a) => {
+      const fechaObj = new Date(a.fecha);
+      const diaSemana = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][fechaObj.getDay()];
+      return diaSemana === dia && a.franja_horaria.startsWith(hora);
+    });
+
+    if (registrosCelda.length === 0) return '';
+    const niveles = registrosCelda.map((a) => ({ bajo: 1, medio: 2, alto: 3, muy_alto: 4 }[a.nivel_actividad] || 0));
+    const promedio = niveles.reduce((a, b) => a + b, 0) / niveles.length;
+    return promedio.toFixed(1);
+  }
 
   const firstDayOfMonthObj = new Date(calViewYear, calViewMonth, 1);
   const daysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate();
@@ -1603,6 +1769,18 @@ export default function App() {
           >
             <History className="w-4 h-4" />
             <span>Cambios Turno</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('estadisticas')}
+            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[10px] font-black transition ${
+              activeTab === 'estadisticas'
+                ? 'bg-slate-950 text-amber-400'
+                : 'bg-white text-slate-950 border border-slate-900 hover:bg-amber-300'
+            }`}
+          >
+            <BarChart3 className="w-4 h-4" />
+            <span>Estadísticas</span>
           </button>
         </div>
 
@@ -3495,6 +3673,286 @@ export default function App() {
                       <p className="text-[11px] font-semibold text-slate-600">
                         Creado: {new Date(c.creado_en).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })} por {c.creado_por}
                       </p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ESTADÍSTICAS Y HORAS PUNTA */}
+        {activeTab === 'estadisticas' && (
+          <div className="space-y-4">
+            {/* FORMULARIO DE REGISTRO RÁPIDO */}
+            <div className="bg-amber-50 border-2 border-slate-950 rounded-2xl p-4 space-y-3">
+              <h2 className="text-xs font-black uppercase tracking-wider text-slate-950 flex items-center gap-2">
+                <BarChart3 className="w-4 h-4" />
+                <span>{editingActividadId ? 'Editar registro' : 'Registro de actividad horaria'}</span>
+              </h2>
+
+              <form onSubmit={editingActividadId ? handleEditActividad : handleAddActividad} className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-black text-slate-700">Fecha</label>
+                    <input
+                      type="date"
+                      value={actFecha}
+                      onChange={(e) => setActFecha(e.target.value)}
+                      className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-black text-slate-700">Punto de venta</label>
+                    <select
+                      value={actPuntoVenta}
+                      onChange={(e) => setActPuntoVenta(e.target.value)}
+                      className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                    >
+                      {['Thalassa', 'Lobby Bar', 'Alborán', 'Pool-Side', 'Chill-Out', 'Salones'].map((p) => (
+                        <option key={p} value={p}>{p}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-black text-slate-700">Franja horaria</label>
+                    <select
+                      value={actFranja}
+                      onChange={(e) => setActFranja(e.target.value)}
+                      className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                    >
+                      <option value="08:00-09:00">08:00 - 09:00</option>
+                      <option value="09:00-10:00">09:00 - 10:00</option>
+                      <option value="10:00-11:00">10:00 - 11:00</option>
+                      <option value="11:00-12:00">11:00 - 12:00</option>
+                      <option value="12:00-13:00">12:00 - 13:00</option>
+                      <option value="13:00-14:00">13:00 - 14:00</option>
+                      <option value="14:00-15:00">14:00 - 15:00</option>
+                      <option value="15:00-16:00">15:00 - 16:00</option>
+                      <option value="16:00-17:00">16:00 - 17:00</option>
+                      <option value="17:00-18:00">17:00 - 18:00</option>
+                      <option value="18:00-19:00">18:00 - 19:00</option>
+                      <option value="19:00-20:00">19:00 - 20:00</option>
+                      <option value="20:00-21:00">20:00 - 21:00</option>
+                      <option value="21:00-22:00">21:00 - 22:00</option>
+                      <option value="22:00-23:00">22:00 - 23:00</option>
+                      <option value="23:00-00:00">23:00 - 00:00</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-black text-slate-700">Nivel actividad</label>
+                    <select
+                      value={actNivel}
+                      onChange={(e) => setActNivel(e.target.value)}
+                      className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                    >
+                      <option value="bajo">Bajo</option>
+                      <option value="medio">Medio</option>
+                      <option value="alto">Alto</option>
+                      <option value="muy_alto">Muy alto</option>
+                    </select>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-black text-slate-700">Nº Empleados</label>
+                    <input
+                      type="number"
+                      value={actEmpleados}
+                      onChange={(e) => setActEmpleados(e.target.value)}
+                      placeholder="Opcional"
+                      className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1 sm:col-span-2">
+                    <label className="text-[10px] font-black text-slate-700">Observaciones</label>
+                    <input
+                      type="text"
+                      value={actObs}
+                      onChange={(e) => setActObs(e.target.value)}
+                      placeholder="Notas opcionales..."
+                      className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs text-slate-950"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    className={`w-auto bg-slate-950 hover:bg-slate-800 text-amber-400 font-black px-4 py-2 rounded-xl border-2 border-slate-950 transition`}
+                  >
+                    {editingActividadId ? 'Guardar cambios' : 'Registrar actividad'}
+                  </button>
+                  {editingActividadId && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActFecha(toLocalDateStr(new Date()));
+                        setActPuntoVenta('Thalassa');
+                        setActFranja('');
+                        setActNivel('medio');
+                        setActEmpleados('');
+                        setActObs('');
+                        setEditingActividadId(null);
+                      }}
+                      className="w-auto bg-white hover:bg-amber-50 text-slate-950 font-black px-4 py-2 rounded-xl border-2 border-slate-950 transition"
+                    >
+                      Cancelar
+                    </button>
+                  )}
+                </div>
+              </form>
+            </div>
+
+            {/* FILTROS */}
+            <div className="bg-white border-2 border-slate-950 rounded-2xl p-4 space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-black text-slate-700">Filtrar por punto de venta:</span>
+                <div className="flex gap-1 overflow-x-auto">
+                  {['Todos', 'Thalassa', 'Lobby Bar', 'Alborán', 'Pool-Side', 'Chill-Out', 'Salones'].map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => setActFiltroPunto(p)}
+                      className={`px-3 py-1 rounded-xl text-xs font-black border-2 transition ${
+                        actFiltroPunto === p
+                          ? 'bg-slate-950 text-amber-400 border-slate-950'
+                          : 'bg-white text-slate-950 border-slate-950 hover:bg-amber-100'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <label className="text-[10px] font-black text-slate-700">Fecha:</label>
+                <input
+                  type="date"
+                  value={actFiltroFecha}
+                  onChange={(e) => setActFiltroFecha(e.target.value)}
+                  className="bg-white border-2 border-slate-950 rounded-xl px-3 py-1.5 text-xs text-slate-950"
+                />
+              </div>
+            </div>
+
+            {/* TARJETAS RESUMEN */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="bg-white border-2 border-slate-950 rounded-2xl p-4 space-y-2">
+                <p className="text-xs font-black uppercase tracking-wider text-slate-700">Total registros</p>
+                <p className="text-2xl font-black text-slate-950">{filteredActividad.length}</p>
+              </div>
+              <div className="bg-white border-2 border-slate-950 rounded-2xl p-4 space-y-2">
+                <p className="text-xs font-black uppercase tracking-wider text-slate-700">Punto más activo</p>
+                <p className="text-xl font-black text-slate-950">{puntoMasActivo || '—'}</p>
+              </div>
+              <div className="bg-white border-2 border-slate-950 rounded-2xl p-4 space-y-2">
+                <p className="text-xs font-black uppercase tracking-wider text-slate-700">Franja punta</p>
+                <p className="text-xl font-black text-slate-950">{franjaPunta || '—'}</p>
+              </div>
+            </div>
+
+            {/* MAPA DE CALOR */}
+            <div className="bg-white border-2 border-slate-950 rounded-2xl p-4 space-y-3">
+              <h3 className="text-xs font-black uppercase tracking-wider text-slate-950">
+                Mapa de calor - Actividad por día y hora
+              </h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-center border-collapse">
+                  <thead>
+                    <tr>
+                      <th className="px-2 py-2 text-[10px] font-black text-slate-700 border-b-2 border-slate-950">Día \ Hora</th>
+                      {['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'].map((h) => (
+                        <th key={h} className="px-1 py-2 text-[10px] font-black text-slate-700 border-b-2 border-slate-950">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'].map((dia) => (
+                      <tr key={dia} className="border-b border-slate-200">
+                        <td className="px-2 py-2 text-[10px] font-black text-slate-950 border-r border-slate-200 bg-slate-50">{dia}</td>
+                        {['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'].map((hora) => (
+                          <td key={hora} className={`px-1 py-2 h-10 border-r border-slate-200 ${celdaCalorColor(dia, hora)}`}>
+                            {celdaCalorValor(dia, hora)}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-[10px] text-slate-600 text-center">
+                Colores: bajo=verde, medio=ámbar, alto=naranja, muy alto=rosa
+              </p>
+            </div>
+
+            {/* LISTA DE REGISTROS */}
+            <div className="bg-white border-2 border-slate-950 rounded-2xl p-4 space-y-2">
+              <h3 className="text-xs font-black uppercase tracking-wider text-slate-950 flex items-center gap-1.5">
+                <ClipboardList className="w-4 h-4" />
+                <span>Registros de actividad</span>
+              </h3>
+
+              {filteredActividad.length === 0 ? (
+                <div className="bg-white border-2 border-dashed border-slate-950 rounded-2xl p-8 text-center text-xs font-semibold text-slate-600">
+                  No hay registros de actividad horaria.
+                </div>
+              ) : (
+                filteredActividad.map((a) => (
+                  <div key={a.id} className="border-2 border-slate-950 rounded-xl p-3 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`px-2 py-0.5 rounded text-[10px] font-black border ${
+                            a.nivel_actividad === 'bajo' ? 'bg-green-100 text-green-800 border-green-300' :
+                            a.nivel_actividad === 'medio' ? 'bg-amber-100 text-amber-800 border-amber-300' :
+                            a.nivel_actividad === 'alto' ? 'bg-orange-100 text-orange-800 border-orange-300' :
+                            'bg-rose-100 text-rose-800 border-rose-300'
+                          }`}
+                        >
+                          {a.nivel_actividad}
+                        </span>
+                        <span className="text-[10px] font-black text-slate-600">{a.franja_horaria}</span>
+                        <span className="text-[10px] font-black text-slate-600">{a.fecha}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActFecha(a.fecha);
+                            setActPuntoVenta(a.punto_venta);
+                            setActFranja(a.franja_horaria);
+                            setActNivel(a.nivel_actividad);
+                            setActEmpleados(String(a.num_empleados || ''));
+                            setActObs(a.observaciones || '');
+                            setEditingActividadId(a.id);
+                          }}
+                          className="text-[10px] font-black px-2 py-1 rounded-lg bg-amber-300 text-slate-950 border-2 border-slate-950 hover:bg-amber-400"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => deleteActividad(a)}
+                          className="text-slate-950 hover:bg-amber-400 p-1.5 rounded-lg border border-slate-950 bg-amber-100"
+                          title="Borrar registro"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-black text-slate-950">{a.punto_venta}</span>
+                      {a.num_empleados && (
+                        <span className="text-xs font-black text-slate-600">{a.num_empleados} empleados</span>
+                      )}
+                      {a.observaciones && (
+                        <span className="text-xs font-medium text-slate-700 bg-amber-50 border border-slate-950 rounded px-2 py-1">{a.observaciones}</span>
+                      )}
+                    </div>
+                    <p className="text-[11px] font-semibold text-slate-600">
+                      Por {a.creado_por} · {new Date(a.creado_en).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </p>
                   </div>
                 ))
               )}
