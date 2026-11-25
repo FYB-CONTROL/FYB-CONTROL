@@ -547,6 +547,8 @@ export default function App() {
       .insert([
         {
           title,
+outlet: selectedOutlet,
+
           outlet: activeOutletForWrite,
           section,
           due_date: selectedDate,

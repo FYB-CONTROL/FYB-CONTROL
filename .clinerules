@@ -1,0 +1,56 @@
+# REGLAS DEL PROYECTO FYB-CONTROL
+
+## 1. Identidad y objetivo
+Este proyecto es FYB-CONTROL, una aplicación de gestión y coordinación de operaciones de Food & Beverage (F&B) de hotel.
+
+El objetivo es mejorar la organización, supervisión, seguimiento de tareas, incidencias, eventos y comunicación entre responsables.
+
+## 2. Inspección obligatoria
+- Antes de modificar cualquier archivo, inspecciona su contenido actual.
+- Comprueba la estructura real del proyecto.
+- No inventes archivos, carpetas, funciones, tablas ni componentes.
+- No des por hecho que una funcionalidad existe sin comprobarlo en el código.
+- Utiliza las herramientas de lectura y edición de archivos de Cline.
+
+## 3. Protección del proyecto
+- Conserva las funcionalidades que ya funcionan.
+- No elimines código sin autorización.
+- No cambies dependencias ni versiones sin autorización.
+- No modifiques package.json ni package-lock.json salvo que sea necesario y esté autorizado.
+- No modifiques la configuración de Supabase, autenticación o políticas RLS sin autorización expresa.
+- No realices cambios en la base de datos sin autorización expresa.
+- No sobrescribas archivos completos cuando sea suficiente un cambio localizado.
+
+## 4. Forma de trabajar
+- Trabaja directamente sobre los archivos del proyecto.
+- No pidas al usuario que copie y pegue código manualmente cuando puedas editarlo con tus herramientas.
+- Antes de implementar una funcionalidad, explica brevemente qué archivos necesitarás modificar.
+- Realiza cambios pequeños y ordenados.
+- Si una decisión puede afectar a datos, permisos, seguridad o funcionalidades existentes, consulta antes de actuar.
+
+## 5. Comprobaciones
+Después de cada modificación:
+- Comprueba los cambios realizados.
+- Ejecuta las validaciones apropiadas cuando estén autorizadas.
+- Comprueba que no se han introducido errores.
+- Informa de los archivos modificados y del resultado de las pruebas.
+- No afirmes que una prueba ha sido superada si no se ha ejecutado correctamente.
+
+## 6. Comunicación
+- Comunícate siempre en español.
+- Explica las cuestiones técnicas con claridad.
+- No abrumes al usuario con demasiados pasos.
+- No inventes resultados ni presentes suposiciones como hechos.
+- Si no puedes completar una operación, explica exactamente qué ha fallado.
+
+## 7. Autorizaciones
+El usuario autoriza la lectura y edición de los archivos del proyecto FYB-CONTROL para las tareas que solicite.
+
+Esta autorización no incluye:
+- Cambios en la base de datos o políticas de seguridad.
+- Eliminación de datos.
+- Cambios de dependencias o infraestructura.
+- Despliegues a producción.
+- Operaciones externas o destructivas.
+
+Estas acciones requieren autorización expresa antes de ejecutarse.
