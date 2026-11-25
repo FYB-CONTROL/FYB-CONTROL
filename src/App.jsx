@@ -3492,9 +3492,9 @@ export default function App() {
                       </p>
                     )}
 
-                    <p className="text-[11px] font-semibold text-slate-600">
-                      Por {c.creado_por} · {new Date(c.creado_en).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                    </p>
+                      <p className="text-[11px] font-semibold text-slate-600">
+                        Creado: {new Date(c.creado_en).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })} por {c.creado_por}
+                      </p>
                   </div>
                 ))
               )}
