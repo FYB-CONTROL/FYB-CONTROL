@@ -1244,7 +1244,7 @@ export default function App() {
   if (loadingAuth) {
     return (
       <div className="min-h-screen bg-white text-slate-900 flex items-center justify-center text-sm">
-        <div className="flex items-center gap-2.5 bg-blue-50 border-2 border-blue-600 px-4 py-3 rounded-2xl">
+        <div className="flex items-center gap-2.5 bg-white border-2 border-slate-900 px-4 py-3 rounded-2xl">
           <Sparkles className="w-4 h-4 text-slate-900 animate-pulse" />
           <span className="font-bold">Cargando F&amp;B Control...</span>
         </div>
@@ -1257,7 +1257,7 @@ export default function App() {
       <div className="min-h-screen bg-white text-slate-900 flex items-center justify-center px-4">
         <div className="w-full max-w-sm bg-white border-2 border-slate-900 rounded-3xl p-6 space-y-5 shadow-md">
           <div className="text-center space-y-1.5">
-            <div className="inline-flex items-center justify-center px-3.5 h-12 rounded-2xl bg-blue-600 border-2 border-blue-900 text-white font-black text-base tracking-wider mb-1">
+            <div className="inline-flex items-center justify-center px-3.5 h-12 rounded-2xl bg-blue-600 border-2 border-slate-900 text-white font-black text-base tracking-wider mb-1">
               F&amp;B
             </div>
             <h1 className="text-xl font-black text-slate-900 tracking-tight">F&amp;B Control</h1>
@@ -1275,7 +1275,7 @@ export default function App() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Tu usuario"
-                  className="w-full bg-blue-50/40 border-2 border-slate-900 rounded-xl pl-9 pr-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-blue-50 transition"
+                  className="w-full bg-white/40 border-2 border-slate-900 rounded-xl pl-9 pr-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white transition"
                 />
               </div>
             </div>
@@ -1290,7 +1290,7 @@ export default function App() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-blue-50/40 border-2 border-slate-900 rounded-xl pl-9 pr-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-blue-50 transition"
+                  className="w-full bg-white/40 border-2 border-slate-900 rounded-xl pl-9 pr-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white transition"
                 />
               </div>
             </div>
@@ -1304,7 +1304,7 @@ export default function App() {
             <button
               type="submit"
               disabled={submittingAuth}
-              className="w-full bg-blue-900 hover:bg-blue-800 text-blue-600 font-black py-2.5 rounded-xl text-sm border-2 border-blue-900 transition"
+              className="w-full bg-slate-900 hover:bg-slate-800 text-slate-600 font-black py-2.5 rounded-xl text-sm border-2 border-slate-900 transition"
             >
               {submittingAuth ? 'Entrando...' : 'Entrar al sistema'}
             </button>
@@ -1532,7 +1532,7 @@ export default function App() {
 
     if (promedio >= 3.5) return 'bg-rose-200';
     if (promedio >= 2.5) return 'bg-orange-200';
-    if (promedio >= 1.5) return 'bg-blue-200';
+    if (promedio >= 1.5) return 'bg-slate-200';
     return 'bg-green-200';
   }
 
@@ -1570,10 +1570,10 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-white text-slate-900 pb-16">
-      <header className="sticky top-0 z-20 bg-white border-b-2 border-blue-900/20 px-4 py-3">
+      <header className="sticky top-0 z-20 bg-white border-b-2 border-slate-900/20 px-4 py-3">
         <div className="max-w-5xl mx-auto flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5">
-            <div className="px-2.5 h-9 rounded-xl bg-blue-600 border-2 border-blue-900 flex items-center justify-center text-white font-black text-xs tracking-wider">
+            <div className="px-2.5 h-9 rounded-xl bg-blue-600 border-2 border-slate-900 flex items-center justify-center text-white font-black text-xs tracking-wider">
               F&amp;B
             </div>
             <div>
@@ -1587,12 +1587,12 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-xs bg-blue-100 px-3 py-1.5 rounded-xl border-2 border-blue-600 text-blue-900 font-black">
+            <span className="text-xs bg-slate-100 px-3 py-1.5 rounded-xl border-2 border-slate-900 text-slate-900 font-black">
               {profileName}
             </span>
             <button
               onClick={handleLogout}
-              className="p-2 rounded-xl bg-blue-900 hover:bg-blue-800 text-white border-2 border-blue-900 transition"
+              className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white border-2 border-slate-900 transition"
               title="Cerrar sesión"
             >
               <LogOut className="w-4 h-4" />
@@ -1603,7 +1603,7 @@ export default function App() {
 
       <main className="max-w-5xl mx-auto px-4 pt-4 space-y-4">
         {(todayCalendarNotices.length > 0 || tomorrowCalendarNotices.length > 0) && (
-          <div className="bg-blue-50 border-2 border-blue-900 rounded-2xl p-3.5 space-y-2">
+          <div className="bg-white border-2 border-slate-900 rounded-2xl p-3.5 space-y-2">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 text-xs font-black text-slate-900 uppercase tracking-wide">
                 <CalendarDays className="w-4 h-4 text-slate-900 shrink-0" />
@@ -1611,7 +1611,7 @@ export default function App() {
               </div>
               <button
                 onClick={() => setActiveTab('calendar')}
-                className="text-[11px] font-black bg-blue-900 text-blue-600 px-2.5 py-1 rounded-lg"
+                className="text-[11px] font-black bg-slate-900 text-slate-600 px-2.5 py-1 rounded-lg"
               >
                 Abrir Calendario
               </button>
@@ -1634,7 +1634,7 @@ export default function App() {
         )}
 
         {activeDayComplaintsAlerts.length > 0 && activeTab !== 'salones' && (
-          <div className="bg-blue-100 border-2 border-blue-900 rounded-2xl p-3.5 space-y-1.5">
+          <div className="bg-slate-100 border-2 border-slate-900 rounded-2xl p-3.5 space-y-1.5">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 text-xs font-black text-slate-900 uppercase tracking-wide">
                 <BellRing className="w-4 h-4 text-slate-900 shrink-0" />
@@ -1642,7 +1642,7 @@ export default function App() {
               </div>
               <button
                 onClick={() => setActiveTab('complaints')}
-                className="text-[11px] font-black bg-blue-900 text-blue-600 px-2.5 py-1 rounded-lg"
+                className="text-[11px] font-black bg-slate-900 text-slate-600 px-2.5 py-1 rounded-lg"
               >
                 Ver Quejas/VIP
               </button>
@@ -1658,7 +1658,7 @@ export default function App() {
         )}
 
         {tomorrowBanquetsPendingMount.length > 0 && (
-          <div className="bg-blue-100 border-2 border-blue-900 rounded-2xl p-3.5 space-y-1.5">
+          <div className="bg-slate-100 border-2 border-slate-900 rounded-2xl p-3.5 space-y-1.5">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 text-xs font-black text-slate-900 uppercase tracking-wide">
                 <BellRing className="w-4 h-4 text-slate-900 shrink-0" />
@@ -1669,7 +1669,7 @@ export default function App() {
                   setBanquetDate(tomorrowStr);
                   setActiveTab('salones');
                 }}
-                className="text-[11px] font-black text-blue-600 bg-blue-900 hover:bg-blue-800 px-2.5 py-1 rounded-lg"
+                className="text-[11px] font-black text-slate-600 bg-slate-900 hover:bg-slate-800 px-2.5 py-1 rounded-lg"
               >
                 Ver Salones
               </button>
@@ -1689,7 +1689,7 @@ export default function App() {
         {(isFirstOfMonth || isOrderDay) && (
           <div className="space-y-2">
             {isFirstOfMonth && (
-              <div className="bg-blue-200 border-2 border-blue-900 rounded-2xl p-3.5 flex items-start gap-3">
+              <div className="bg-slate-200 border-2 border-slate-900 rounded-2xl p-3.5 flex items-start gap-3">
                 <BellRing className="w-5 h-5 text-slate-900 shrink-0 mt-0.5" />
                 <div className="text-xs text-slate-900">
                   <p className="font-black uppercase tracking-wide">
@@ -1703,7 +1703,7 @@ export default function App() {
             )}
 
             {isOrderDay && (
-              <div className="bg-blue-100 border-2 border-blue-900 rounded-2xl p-3.5 flex items-start gap-3">
+              <div className="bg-slate-100 border-2 border-slate-900 rounded-2xl p-3.5 flex items-start gap-3">
                 <BellRing className="w-5 h-5 text-slate-900 shrink-0 mt-0.5" />
                 <div className="text-xs text-slate-900">
                   <p className="font-black uppercase tracking-wide">
@@ -1731,8 +1731,8 @@ export default function App() {
                 }}
                 className={`px-3.5 py-2 rounded-xl text-xs font-black whitespace-nowrap border-2 transition ${
                   active
-                    ? 'bg-blue-900 text-blue-600 border-blue-900'
-                    : 'bg-white text-slate-900 border-blue-900 hover:bg-blue-100'
+                    ? 'bg-slate-900 text-slate-600 border-slate-900'
+                    : 'bg-white text-slate-900 border-slate-900 hover:bg-slate-100'
                 }`}
               >
                 {outlet}
@@ -1749,28 +1749,28 @@ export default function App() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Buscar habitación, salón, queja, incidencia o evento..."
-              className="w-full bg-white border-2 border-blue-900 rounded-xl pl-9 pr-3 py-2 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-blue-50"
+              className="w-full bg-white border-2 border-slate-900 rounded-xl pl-9 pr-3 py-2 text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:bg-white"
             />
           </div>
           <button
             onClick={() => setOnlyOpenFilter(!onlyOpenFilter)}
             className={`px-3.5 py-2 rounded-xl text-xs font-black border-2 transition shrink-0 ${
               onlyOpenFilter
-                ? 'bg-blue-600 border-blue-900 text-slate-900'
-                : 'bg-white border-blue-900 text-slate-900 hover:bg-blue-100'
+                ? 'bg-blue-600 border-slate-900 text-slate-900'
+                : 'bg-white border-slate-900 text-slate-900 hover:bg-slate-100'
             }`}
           >
             {onlyOpenFilter ? 'Mostrando solo abiertos' : 'Ver todos'}
           </button>
         </div>
 
-        <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5 bg-blue-50 p-1.5 rounded-2xl border-2 border-blue-900">
+        <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5 bg-white p-1.5 rounded-2xl border-2 border-slate-900">
           <button
             onClick={() => setActiveTab('resumen')}
             className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[10px] font-black transition ${
               activeTab === 'resumen'
-                ? 'bg-blue-900 text-blue-600'
-                : 'bg-white text-slate-900 border border-slate-900 hover:bg-blue-100'
+                ? 'bg-slate-900 text-slate-600'
+                : 'bg-white text-slate-900 border border-slate-900 hover:bg-slate-100'
             }`}
           >
             <Sun className="w-4 h-4" />
@@ -1781,8 +1781,8 @@ export default function App() {
             onClick={() => setActiveTab('relevo')}
             className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[10px] font-black transition ${
               activeTab === 'relevo'
-                ? 'bg-blue-900 text-blue-600'
-                : 'bg-white text-slate-900 border border-slate-900 hover:bg-blue-100'
+                ? 'bg-slate-900 text-slate-600'
+                : 'bg-white text-slate-900 border border-slate-900 hover:bg-slate-100'
             }`}
           >
             <ArrowRightCircle className="w-4 h-4" />
@@ -1793,8 +1793,8 @@ export default function App() {
             onClick={() => setActiveTab('salones')}
             className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[10px] font-black transition ${
               activeTab === 'salones'
-                ? 'bg-blue-900 text-blue-600'
-                : 'bg-white text-slate-900 border border-slate-900 hover:bg-blue-100'
+                ? 'bg-slate-900 text-slate-600'
+                : 'bg-white text-slate-900 border border-slate-900 hover:bg-slate-100'
             }`}
           >
             <Utensils className="w-4 h-4" />
@@ -1805,8 +1805,8 @@ export default function App() {
             onClick={() => setActiveTab('incidencias')}
             className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[10px] font-black transition ${
               activeTab === 'incidencias'
-                ? 'bg-blue-900 text-blue-600'
-                : 'bg-white text-slate-900 border border-slate-900 hover:bg-blue-100'
+                ? 'bg-slate-900 text-slate-600'
+                : 'bg-white text-slate-900 border border-slate-900 hover:bg-slate-100'
             }`}
           >
             <AlertOctagon className="w-4 h-4" />
@@ -1817,8 +1817,8 @@ export default function App() {
             onClick={() => setActiveTab('habitaciones')}
             className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[10px] font-black transition ${
               activeTab === 'habitaciones'
-                ? 'bg-blue-900 text-blue-600'
-                : 'bg-white text-slate-900 border border-slate-900 hover:bg-blue-100'
+                ? 'bg-slate-900 text-slate-600'
+                : 'bg-white text-slate-900 border border-slate-900 hover:bg-slate-100'
             }`}
           >
             <DoorOpen className="w-4 h-4" />
@@ -1829,8 +1829,8 @@ export default function App() {
             onClick={() => setActiveTab('complaints')}
             className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[10px] font-black transition ${
               activeTab === 'complaints'
-                ? 'bg-blue-900 text-blue-600'
-                : 'bg-blue-100 text-slate-900 border border-blue-900 hover:bg-blue-600'
+                ? 'bg-slate-900 text-slate-600'
+                : 'bg-slate-100 text-slate-900 border border-slate-900 hover:bg-blue-600'
             }`}
           >
             <MessageSquareWarning className="w-4 h-4" />
@@ -1841,8 +1841,8 @@ export default function App() {
             onClick={() => setActiveTab('checklist')}
             className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[10px] font-black transition ${
               activeTab === 'checklist'
-                ? 'bg-blue-900 text-blue-600'
-                : 'bg-white text-slate-900 border border-slate-900 hover:bg-blue-100'
+                ? 'bg-slate-900 text-slate-600'
+                : 'bg-white text-slate-900 border border-slate-900 hover:bg-slate-100'
             }`}
           >
             <ClipboardList className="w-4 h-4" />
@@ -1853,8 +1853,8 @@ export default function App() {
             onClick={() => setActiveTab('pending')}
             className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[10px] font-black transition ${
               activeTab === 'pending'
-                ? 'bg-blue-900 text-blue-600'
-                : 'bg-white text-slate-900 border border-slate-900 hover:bg-blue-100'
+                ? 'bg-slate-900 text-slate-600'
+                : 'bg-white text-slate-900 border border-slate-900 hover:bg-slate-100'
             }`}
           >
             <CalendarClock className="w-4 h-4" />
@@ -1865,8 +1865,8 @@ export default function App() {
             onClick={() => setActiveTab('calendar')}
             className={`col-span-4 sm:col-span-8 flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-[11px] font-black transition ${
               activeTab === 'calendar'
-                ? 'bg-blue-900 text-blue-600'
-                : 'bg-white text-slate-900 border border-slate-900 hover:bg-blue-100'
+                ? 'bg-slate-900 text-slate-600'
+                : 'bg-white text-slate-900 border border-slate-900 hover:bg-slate-100'
             }`}
           >
             <CalendarDays className="w-4 h-4" />
@@ -1877,8 +1877,8 @@ export default function App() {
             onClick={() => setActiveTab('cambiosTurno')}
             className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[10px] font-black transition ${
               activeTab === 'cambiosTurno'
-                ? 'bg-blue-900 text-blue-600'
-                : 'bg-white text-slate-900 border border-slate-900 hover:bg-blue-100'
+                ? 'bg-slate-900 text-slate-600'
+                : 'bg-white text-slate-900 border border-slate-900 hover:bg-slate-100'
             }`}
           >
             <History className="w-4 h-4" />
@@ -1889,8 +1889,8 @@ export default function App() {
             onClick={() => setActiveTab('estadisticas')}
             className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[10px] font-black transition ${
               activeTab === 'estadisticas'
-                ? 'bg-blue-900 text-blue-600'
-                : 'bg-white text-slate-900 border border-slate-900 hover:bg-blue-100'
+                ? 'bg-slate-900 text-slate-600'
+                : 'bg-white text-slate-900 border border-slate-900 hover:bg-slate-100'
             }`}
           >
             <BarChart3 className="w-4 h-4" />
@@ -1901,8 +1901,8 @@ export default function App() {
             onClick={() => setActiveTab('avisos')}
             className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[10px] font-black transition ${
               activeTab === 'avisos'
-                ? 'bg-blue-900 text-blue-600'
-                : 'bg-white text-slate-900 border border-slate-900 hover:bg-blue-100'
+                ? 'bg-slate-900 text-slate-600'
+                : 'bg-white text-slate-900 border border-slate-900 hover:bg-slate-100'
             }`}
           >
             <BellRing className="w-4 h-4" />
@@ -1911,7 +1911,7 @@ export default function App() {
         </div>
 
         {showComplaintsInCurrentView && activeTab !== 'complaints' && (
-          <div className="bg-blue-50 border-2 border-blue-900 rounded-2xl px-4 py-2.5 flex items-center justify-between gap-2">
+          <div className="bg-white border-2 border-slate-900 rounded-2xl px-4 py-2.5 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 text-xs font-bold text-slate-900">
               <MessageSquareWarning className="w-4 h-4 text-slate-900 shrink-0" />
               <span>
@@ -1921,7 +1921,7 @@ export default function App() {
             </div>
             <button
               onClick={() => setActiveTab('complaints')}
-              className="text-xs font-black bg-blue-600 hover:bg-blue-100 text-slate-900 border-2 border-blue-900 px-3 py-1 rounded-xl shrink-0"
+              className="text-xs font-black bg-blue-600 hover:bg-slate-100 text-slate-900 border-2 border-slate-900 px-3 py-1 rounded-xl shrink-0"
             >
               Abrir Quejas/VIP
             </button>
@@ -1940,7 +1940,7 @@ export default function App() {
               </div>
               <button
                 onClick={() => setActiveTab('avisos')}
-                className="text-[11px] font-black bg-blue-900 text-white px-2.5 py-1 rounded-lg border border-blue-600 hover:bg-blue-800 transition"
+                className="text-[11px] font-black bg-slate-900 text-white px-2.5 py-1 rounded-lg border border-slate-900 hover:bg-slate-800 transition"
               >
                 Gestionar Avisos
               </button>
@@ -1954,7 +1954,7 @@ export default function App() {
                     className={`p-3 rounded-xl border flex items-start justify-between gap-3 ${
                       isAlta
                         ? 'bg-rose-100 border-rose-400 shadow-sm'
-                        : 'bg-blue-50 border-blue-300 shadow-sm'
+                        : 'bg-white border-blue-300 shadow-sm'
                     }`}
                   >
                     <div className="flex-1">
@@ -1963,7 +1963,7 @@ export default function App() {
                           className={`text-[9px] font-black uppercase px-2 py-0.5 rounded border ${
                             isAlta
                               ? 'bg-rose-200 text-rose-700 border-rose-400 animate-pulse'
-                              : 'bg-blue-200 text-blue-700 border-blue-400'
+                              : 'bg-slate-200 text-blue-700 border-blue-400'
                           }`}
                         >
                           {a.prioridad.toUpperCase()}
@@ -1991,7 +1991,7 @@ export default function App() {
                       className={`p-1.5 rounded-lg border ${
                         isAlta
                           ? 'text-rose-600 hover:bg-rose-200 border-rose-300'
-                          : 'text-blue-600 hover:bg-blue-100 border-blue-300'
+                          : 'text-slate-600 hover:bg-slate-100 border-blue-300'
                       } transition`}
                       title="Cerrar aviso"
                     >
@@ -2007,7 +2007,7 @@ export default function App() {
         {/* RESUMEN DIARIO */}
         {activeTab === 'resumen' && (
           <div className="space-y-4">
-            <div className="bg-blue-50 border-2 border-blue-900 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="bg-white border-2 border-slate-900 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-black uppercase tracking-wider text-slate-900">
                   Resumen Diario del Día ({todayStr}) · {selectedOutlet}
@@ -2018,7 +2018,7 @@ export default function App() {
               </div>
                 <button
                   onClick={() => setActiveTab('complaints')}
-                  className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-100 border-2 border-blue-900 text-xs font-black text-slate-900 shrink-0"
+                  className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-slate-100 border-2 border-slate-900 text-xs font-black text-slate-900 shrink-0"
                 >
                   + Nueva Queja / VIP
                 </button>
@@ -2033,7 +2033,7 @@ export default function App() {
                     </div>
                     <button
                       onClick={() => setActiveTab('pending')}
-                      className="text-[11px] font-black bg-blue-900 text-blue-600 px-2.5 py-1 rounded-lg"
+                      className="text-[11px] font-black bg-slate-900 text-slate-600 px-2.5 py-1 rounded-lg"
                     >
                       Ver Pendientes
                     </button>
@@ -2049,7 +2049,7 @@ export default function App() {
               )}
 
               {tasksDueTomorrow.length > 0 && (
-                <div className="bg-blue-50 border-2 border-blue-900 rounded-2xl p-3.5 space-y-1.5 mb-3">
+                <div className="bg-white border-2 border-slate-900 rounded-2xl p-3.5 space-y-1.5 mb-3">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 text-xs font-black text-slate-900">
                       <CalendarClock className="w-4 h-4 text-slate-900 shrink-0" />
@@ -2057,7 +2057,7 @@ export default function App() {
                     </div>
                     <button
                       onClick={() => setActiveTab('pending')}
-                      className="text-[11px] font-black bg-blue-900 text-blue-600 px-2.5 py-1 rounded-lg"
+                      className="text-[11px] font-black bg-slate-900 text-slate-600 px-2.5 py-1 rounded-lg"
                     >
                       Ver Pendientes
                     </button>
@@ -2081,7 +2081,7 @@ export default function App() {
                     </div>
                     <button
                       onClick={() => setActiveTab('incidencias')}
-                      className="text-[11px] font-black bg-blue-900 text-blue-600 px-2.5 py-1 rounded-lg"
+                      className="text-[11px] font-black bg-slate-900 text-slate-600 px-2.5 py-1 rounded-lg"
                     >
                       Ver Incidencias
                     </button>
@@ -2105,7 +2105,7 @@ export default function App() {
                   className={`bg-white border-2 rounded-2xl p-3 text-left transition hover:shadow-sm ${
                     overdueTasks.length > 0
                       ? 'border-rose-400 bg-rose-50/50'
-                      : 'border-blue-900'
+                      : 'border-slate-900'
                   }`}
                 >
                   <div className="flex items-start gap-2">
@@ -2132,7 +2132,7 @@ export default function App() {
                   className={`bg-white border-2 rounded-2xl p-3 text-left transition hover:shadow-sm ${
                     highSeverityIncidences.length > 0
                       ? 'border-rose-400 bg-rose-50/50'
-                      : 'border-blue-900'
+                      : 'border-slate-900'
                   }`}
                 >
                   <div className="flex items-start gap-2">
@@ -2159,8 +2159,8 @@ export default function App() {
                   onClick={() => setActiveTab('complaints')}
                   className={`bg-white border-2 rounded-2xl p-3 text-left transition hover:shadow-sm ${
                     openComplaintsTotal.length > 0
-                      ? 'border-blue-600 bg-blue-50/50'
-                      : 'border-blue-900'
+                      ? 'border-slate-900 bg-white/50'
+                      : 'border-slate-900'
                   }`}
                 >
                   <div className="flex items-start gap-2">
@@ -2184,7 +2184,7 @@ export default function App() {
                   className={`bg-white border-2 rounded-2xl p-3 text-left transition hover:shadow-sm ${
                     pendingRoomRequestsTotal.length > 0
                       ? 'border-sky-400 bg-sky-50/50'
-                      : 'border-blue-900'
+                      : 'border-slate-900'
                   }`}
                 >
                   <div className="flex items-start gap-2">
@@ -2205,7 +2205,7 @@ export default function App() {
 
                 <button
                   onClick={() => setActiveTab('calendar')}
-                  className="bg-white border-2 border-blue-900 rounded-2xl p-3 text-left transition hover:shadow-sm"
+                  className="bg-white border-2 border-slate-900 rounded-2xl p-3 text-left transition hover:shadow-sm"
                 >
                   <div className="flex items-start gap-2">
                     <CalendarDays className="w-5 h-5 text-slate-900 shrink-0" />
@@ -2225,7 +2225,7 @@ export default function App() {
               </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-              <div className="bg-white border-2 border-blue-900 rounded-2xl p-4 space-y-2.5">
+              <div className="bg-white border-2 border-slate-900 rounded-2xl p-4 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
                     <CalendarClock className="w-4 h-4" />
@@ -2248,15 +2248,15 @@ export default function App() {
                   todayPendingItems.map((t) => (
                     <div
                       key={t.id}
-                      className={`border-2 border-blue-900 rounded-xl p-2.5 text-xs text-slate-900 ${
-                        t.completed ? 'bg-slate-100 opacity-70' : 'bg-blue-50'
+                      className={`border-2 border-slate-900 rounded-xl p-2.5 text-xs text-slate-900 ${
+                        t.completed ? 'bg-slate-100 opacity-70' : 'bg-white'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-black">
                           [{t.outlet}] {t.title}
                         </span>
-                        <span className="text-[10px] font-black px-2 py-0.5 rounded bg-blue-900 text-blue-600">
+                        <span className="text-[10px] font-black px-2 py-0.5 rounded bg-slate-900 text-slate-600">
                           {t.completed ? 'Hecho' : 'Pendiente'}
                         </span>
                       </div>
@@ -2266,7 +2266,7 @@ export default function App() {
                 )}
               </div>
 
-              <div className="bg-white border-2 border-blue-900 rounded-2xl p-4 space-y-2.5">
+              <div className="bg-white border-2 border-slate-900 rounded-2xl p-4 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
                     <MessageSquareWarning className="w-4 h-4" />
@@ -2286,15 +2286,15 @@ export default function App() {
                   todayComplaintsItems.map((c) => (
                     <div
                       key={c.id}
-                      className={`border-2 border-blue-900 rounded-xl p-2.5 text-xs text-slate-900 ${
-                        c.status === 'cerrada' ? 'bg-slate-100 opacity-70' : 'bg-blue-100'
+                      className={`border-2 border-slate-900 rounded-xl p-2.5 text-xs text-slate-900 ${
+                        c.status === 'cerrada' ? 'bg-slate-100 opacity-70' : 'bg-slate-100'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-black">
                           Hab. {c.room_number} · {c.outlet} ({c.record_type})
                         </span>
-                        <span className="text-[10px] font-black px-2 py-0.5 rounded bg-blue-900 text-blue-600">
+                        <span className="text-[10px] font-black px-2 py-0.5 rounded bg-slate-900 text-slate-600">
                           {c.status}
                         </span>
                       </div>
@@ -2307,7 +2307,7 @@ export default function App() {
                 )}
               </div>
 
-              <div className="bg-white border-2 border-blue-900 rounded-2xl p-4 space-y-2.5">
+              <div className="bg-white border-2 border-slate-900 rounded-2xl p-4 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
                     <AlertOctagon className="w-4 h-4" />
@@ -2327,15 +2327,15 @@ export default function App() {
                   todayIncidencesItems.map((inc) => (
                     <div
                       key={inc.id}
-                      className={`border-2 border-blue-900 rounded-xl p-2.5 text-xs text-slate-900 ${
-                        inc.status === 'resuelta' ? 'bg-slate-100 opacity-70' : 'bg-blue-100'
+                      className={`border-2 border-slate-900 rounded-xl p-2.5 text-xs text-slate-900 ${
+                        inc.status === 'resuelta' ? 'bg-slate-100 opacity-70' : 'bg-slate-100'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-black">
                           [{inc.outlet}] {inc.title}
                         </span>
-                        <span className="text-[10px] font-black px-2 py-0.5 rounded bg-blue-900 text-blue-600">
+                        <span className="text-[10px] font-black px-2 py-0.5 rounded bg-slate-900 text-slate-600">
                           {inc.severity} · {inc.status}
                         </span>
                       </div>
@@ -2345,7 +2345,7 @@ export default function App() {
                 )}
               </div>
 
-              <div className="bg-white border-2 border-blue-900 rounded-2xl p-4 space-y-2.5">
+              <div className="bg-white border-2 border-slate-900 rounded-2xl p-4 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
                     <DoorOpen className="w-4 h-4" />
@@ -2365,15 +2365,15 @@ export default function App() {
                   todayRoomRequestsItems.map((r) => (
                     <div
                       key={r.id}
-                      className={`border-2 border-blue-900 rounded-xl p-2.5 text-xs text-slate-900 ${
-                        r.status === 'atendida' ? 'bg-slate-100 opacity-70' : 'bg-blue-50'
+                      className={`border-2 border-slate-900 rounded-xl p-2.5 text-xs text-slate-900 ${
+                        r.status === 'atendida' ? 'bg-slate-100 opacity-70' : 'bg-white'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-black">
                           Hab. {r.room_number} · {r.outlet}
                         </span>
-                        <span className="text-[10px] font-black px-2 py-0.5 rounded bg-blue-900 text-blue-600">
+                        <span className="text-[10px] font-black px-2 py-0.5 rounded bg-slate-900 text-slate-600">
                           {r.status}
                         </span>
                       </div>
@@ -2392,7 +2392,7 @@ export default function App() {
           <div className="space-y-4">
             <form
               onSubmit={handleAddHandover}
-              className="bg-blue-50 border-2 border-blue-900 rounded-2xl p-4 space-y-3"
+              className="bg-white border-2 border-slate-900 rounded-2xl p-4 space-y-3"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 className="text-xs font-black uppercase tracking-wider text-slate-900">
@@ -2402,7 +2402,7 @@ export default function App() {
                   <select
                     value={handoverType}
                     onChange={(e) => setHandoverType(e.target.value)}
-                    className="bg-white border-2 border-blue-900 rounded-xl px-2.5 py-1 text-xs font-bold text-slate-900"
+                    className="bg-white border-2 border-slate-900 rounded-xl px-2.5 py-1 text-xs font-bold text-slate-900"
                   >
                     <option value="relevo">Parte de relevo</option>
                     <option value="stock_86">Stock bajo / 86&apos;d</option>
@@ -2412,7 +2412,7 @@ export default function App() {
                   <select
                     value={handoverPriority}
                     onChange={(e) => setHandoverPriority(e.target.value)}
-                    className="bg-white border-2 border-blue-900 rounded-xl px-2.5 py-1 text-xs font-bold text-slate-900"
+                    className="bg-white border-2 border-slate-900 rounded-xl px-2.5 py-1 text-xs font-bold text-slate-900"
                   >
                     <option value="normal">Normal</option>
                     <option value="importante">Importante</option>
@@ -2425,7 +2425,7 @@ export default function App() {
                 value={handoverTitle}
                 onChange={(e) => setHandoverTitle(e.target.value)}
                 placeholder="Ej. Cómo quedó el turno, cierres, pendientes..."
-                className="w-full bg-white border-2 border-blue-900 rounded-xl px-3.5 py-2 text-sm font-medium text-slate-900 placeholder:text-slate-400"
+                className="w-full bg-white border-2 border-slate-900 rounded-xl px-3.5 py-2 text-sm font-medium text-slate-900 placeholder:text-slate-400"
               />
 
               <input
@@ -2433,11 +2433,11 @@ export default function App() {
                 value={handoverDetails}
                 onChange={(e) => setHandoverDetails(e.target.value)}
                 placeholder="Detalle o acción acordada..."
-                className="w-full bg-white border-2 border-blue-900 rounded-xl px-3.5 py-1.5 text-xs text-slate-900 placeholder:text-slate-400"
+                className="w-full bg-white border-2 border-slate-900 rounded-xl px-3.5 py-1.5 text-xs text-slate-900 placeholder:text-slate-400"
               />
 
               <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                <label className="flex items-center gap-2 text-xs font-bold text-slate-900 bg-white border-2 border-blue-900 px-3 py-1.5 rounded-xl cursor-pointer hover:bg-blue-100">
+                <label className="flex items-center gap-2 text-xs font-bold text-slate-900 bg-white border-2 border-slate-900 px-3 py-1.5 rounded-xl cursor-pointer hover:bg-slate-100">
                   <Paperclip className="w-3.5 h-3.5" />
                   <span>{handoverFile ? handoverFile.name : 'Adjuntar foto o archivo'}</span>
                   <input
@@ -2451,7 +2451,7 @@ export default function App() {
                 <button
                   type="submit"
                   disabled={uploadingFile}
-                  className="bg-blue-900 hover:bg-blue-800 text-blue-600 font-black px-4 py-2 rounded-xl text-xs flex items-center gap-1 border-2 border-blue-900"
+                  className="bg-slate-900 hover:bg-slate-800 text-slate-600 font-black px-4 py-2 rounded-xl text-xs flex items-center gap-1 border-2 border-slate-900"
                 >
                   <Plus className="w-4 h-4" />
                   {uploadingFile ? 'Subiendo...' : 'Publicar'}
@@ -2461,14 +2461,14 @@ export default function App() {
 
             <div className="space-y-2">
               {filteredHandovers.length === 0 ? (
-                <div className="bg-white border-2 border-dashed border-blue-900 rounded-2xl p-8 text-center text-xs font-semibold text-slate-600">
+                <div className="bg-white border-2 border-dashed border-slate-900 rounded-2xl p-8 text-center text-xs font-semibold text-slate-600">
                   No hay avisos de relevo en esta vista.
                 </div>
               ) : (
                 filteredHandovers.map((item) => (
                   <div
                     key={item.id}
-                    className={`bg-white border-2 border-blue-900 rounded-2xl p-3.5 flex items-start justify-between gap-3 ${
+                    className={`bg-white border-2 border-slate-900 rounded-2xl p-3.5 flex items-start justify-between gap-3 ${
                       item.resolved ? 'opacity-60 bg-slate-100' : ''
                     }`}
                   >
@@ -2482,10 +2482,10 @@ export default function App() {
                       </button>
                       <div className="space-y-1.5 flex-1">
                         <div className="flex flex-wrap items-center gap-1.5">
-                          <span className="text-[10px] font-black px-2 py-0.5 rounded bg-blue-600 text-slate-900 border border-blue-900">
+                          <span className="text-[10px] font-black px-2 py-0.5 rounded bg-slate-900 text-white border border-slate-900">
                             {item.outlet}
                           </span>
-                          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-blue-900 text-blue-600">
+                          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-slate-900 text-slate-600">
                             {item.item_type}
                           </span>
                         </div>
@@ -2510,7 +2510,7 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => deleteHandover(item)}
-                      className="text-slate-900 hover:bg-blue-600 p-1.5 rounded-lg border border-blue-900 bg-blue-100"
+                      className="text-slate-900 hover:bg-blue-600 p-1.5 rounded-lg border border-slate-900 bg-slate-100"
                       title="Borrar"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -2527,7 +2527,7 @@ export default function App() {
           <div className="space-y-4">
             <form
               onSubmit={handleAddBanquetEvent}
-              className="bg-blue-50 border-2 border-blue-900 rounded-2xl p-4 space-y-3"
+              className="bg-white border-2 border-slate-900 rounded-2xl p-4 space-y-3"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 className="text-xs font-black uppercase tracking-wider text-slate-900">
@@ -2537,7 +2537,7 @@ export default function App() {
                   type="date"
                   value={banquetDate}
                   onChange={(e) => setBanquetDate(e.target.value)}
-                  className="bg-white border-2 border-blue-900 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900"
+                  className="bg-white border-2 border-slate-900 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900"
                 />
               </div>
 
@@ -2545,7 +2545,7 @@ export default function App() {
                 <select
                   value={salonName}
                   onChange={(e) => setSalonName(e.target.value)}
-                  className="bg-white border-2 border-blue-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
+                  className="bg-white border-2 border-slate-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
                 >
                   {SALONS.map((s) => (
                     <option key={s} value={s}>
@@ -2557,7 +2557,7 @@ export default function App() {
                   type="time"
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
-                  className="bg-white border-2 border-blue-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
+                  className="bg-white border-2 border-slate-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
                 />
                 <div className="flex gap-2">
                   <input
@@ -2565,12 +2565,12 @@ export default function App() {
                     value={paxCount}
                     onChange={(e) => setPaxCount(e.target.value)}
                     placeholder="PAX"
-                    className="w-20 bg-white border-2 border-blue-900 rounded-xl px-2.5 py-2 text-xs font-bold text-slate-900"
+                    className="w-20 bg-white border-2 border-slate-900 rounded-xl px-2.5 py-2 text-xs font-bold text-slate-900"
                   />
                   <select
                     value={setupType}
                     onChange={(e) => setSetupType(e.target.value)}
-                    className="flex-1 bg-white border-2 border-blue-900 rounded-xl px-2 py-2 text-xs font-bold text-slate-900"
+                    className="flex-1 bg-white border-2 border-slate-900 rounded-xl px-2 py-2 text-xs font-bold text-slate-900"
                   >
                     <option value="Banquete">Banquete</option>
                     <option value="Escuela">Escuela</option>
@@ -2582,7 +2582,7 @@ export default function App() {
                 <select
                   value={salonMountState}
                   onChange={(e) => setSalonMountState(e.target.value)}
-                  className="bg-white border-2 border-blue-900 rounded-xl px-3 py-2 text-xs font-black text-slate-900"
+                  className="bg-white border-2 border-slate-900 rounded-xl px-3 py-2 text-xs font-black text-slate-900"
                 >
                   <option value="Falta por montar">Falta por montar</option>
                   <option value="Terminado / Montado">Terminado / Montado</option>
@@ -2595,7 +2595,7 @@ export default function App() {
                 value={banquetName}
                 onChange={(e) => setBanquetName(e.target.value)}
                 placeholder="Nombre del evento, grupo o empresa..."
-                className="w-full bg-white border-2 border-blue-900 rounded-xl px-3.5 py-2 text-sm font-medium text-slate-900 placeholder:text-slate-400"
+                className="w-full bg-white border-2 border-slate-900 rounded-xl px-3.5 py-2 text-sm font-medium text-slate-900 placeholder:text-slate-400"
               />
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -2604,19 +2604,19 @@ export default function App() {
                   value={allergensNotes}
                   onChange={(e) => setAllergensNotes(e.target.value)}
                   placeholder="Alérgenos / dietas especiales..."
-                  className="bg-white border-2 border-blue-900 rounded-xl px-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400"
+                  className="bg-white border-2 border-slate-900 rounded-xl px-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400"
                 />
                 <input
                   type="text"
                   value={extrasNotes}
                   onChange={(e) => setExtrasNotes(e.target.value)}
                   placeholder="Material o extras..."
-                  className="bg-white border-2 border-blue-900 rounded-xl px-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400"
+                  className="bg-white border-2 border-slate-900 rounded-xl px-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                <div className="bg-blue-100/70 border-2 border-blue-900 rounded-xl p-2.5 space-y-1.5">
+                <div className="bg-slate-100/70 border-2 border-slate-900 rounded-xl p-2.5 space-y-1.5">
                   <label className="flex items-center gap-2 text-xs font-black text-slate-900 cursor-pointer">
                     <input
                       type="checkbox"
@@ -2634,24 +2634,24 @@ export default function App() {
                       if (e.target.value.trim()) setLastMinuteChange(true);
                     }}
                     placeholder="Escribe aquí los cambios de última hora..."
-                    className="w-full bg-white border-2 border-blue-900 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-900 placeholder:text-slate-500"
+                    className="w-full bg-white border-2 border-slate-900 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-900 placeholder:text-slate-500"
                   />
                 </div>
 
-                <div className="bg-white border-2 border-blue-900 rounded-xl p-2.5 space-y-1.5">
+                <div className="bg-white border-2 border-slate-900 rounded-xl p-2.5 space-y-1.5">
                   <span className="block text-xs font-black text-slate-900">Pendiente</span>
                   <input
                     type="text"
                     value={salonPendingNotes}
                     onChange={(e) => setSalonPendingNotes(e.target.value)}
                     placeholder="Escribe aquí las cosas pendientes por hacer..."
-                    className="w-full bg-blue-50 border-2 border-blue-900 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-900 placeholder:text-slate-500"
+                    className="w-full bg-white border-2 border-slate-900 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-900 placeholder:text-slate-500"
                   />
                 </div>
               </div>
 
               <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                <label className="flex items-center gap-2 text-xs font-bold text-slate-900 bg-white border-2 border-blue-900 px-3 py-1.5 rounded-xl cursor-pointer hover:bg-blue-100">
+                <label className="flex items-center gap-2 text-xs font-bold text-slate-900 bg-white border-2 border-slate-900 px-3 py-1.5 rounded-xl cursor-pointer hover:bg-slate-100">
                   <Paperclip className="w-3.5 h-3.5" />
                   <span>{banquetFile ? banquetFile.name : 'Adjuntar archivo o foto'}</span>
                   <input
@@ -2665,7 +2665,7 @@ export default function App() {
                 <button
                   type="submit"
                   disabled={uploadingFile}
-                  className="bg-blue-900 hover:bg-blue-800 text-blue-600 font-black px-4 py-2 rounded-xl text-xs border-2 border-blue-900"
+                  className="bg-slate-900 hover:bg-slate-800 text-slate-600 font-black px-4 py-2 rounded-xl text-xs border-2 border-slate-900"
                 >
                   {uploadingFile ? 'Subiendo archivo...' : 'Guardar evento y añadir al calendario'}
                 </button>
@@ -2683,8 +2683,8 @@ export default function App() {
                 return (
                   <div
                     key={salon}
-                    className={`border-2 border-blue-900 rounded-2xl overflow-hidden ${
-                      allReady ? 'bg-blue-50' : 'bg-white'
+                    className={`border-2 border-slate-900 rounded-2xl overflow-hidden ${
+                      allReady ? 'bg-white' : 'bg-white'
                     }`}
                   >
                     <button
@@ -2694,29 +2694,29 @@ export default function App() {
                         isOpen
                           ? 'bg-blue-600'
                           : allReady
-                          ? 'bg-blue-200 hover:bg-blue-100'
-                          : 'bg-white hover:bg-blue-50'
+                          ? 'bg-slate-200 hover:bg-slate-100'
+                          : 'bg-white hover:bg-white'
                       }`}
                     >
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="w-2.5 h-2.5 rounded-full bg-blue-900" />
+                        <span className="w-2.5 h-2.5 rounded-full bg-slate-900" />
                         <span className="text-sm font-black text-slate-900">{salon}</span>
-                        <span className="text-xs px-2 py-0.5 rounded-lg bg-blue-900 text-blue-600 font-bold">
+                        <span className="text-xs px-2 py-0.5 rounded-lg bg-slate-900 text-slate-600 font-bold">
                           {salonEvents.length} ({banquetDate})
                         </span>
                         {salonEvents.length > 0 && (
                           <span
-                            className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border border-blue-900 ${
+                            className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border border-slate-900 ${
                               allReady
                                 ? 'bg-white text-slate-900'
-                                : 'bg-blue-100 text-slate-900'
+                                : 'bg-slate-100 text-slate-900'
                             }`}
                           >
                             {allReady ? 'Terminado / Montado' : 'Falta por montar'}
                           </span>
                         )}
                         {hasLastMinute && (
-                          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-blue-900 text-blue-600">
+                          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-slate-900 text-slate-600">
                             Cambios de última hora
                           </span>
                         )}
@@ -2729,12 +2729,12 @@ export default function App() {
                     </button>
 
                     {isOpen && (
-                      <div className="p-4 border-t-2 border-blue-900 bg-blue-50/50 space-y-3">
+                      <div className="p-4 border-t-2 border-slate-900 bg-white/50 space-y-3">
                         <div className="grid grid-cols-2 gap-2">
-                          <div className="bg-blue-600 border-2 border-blue-900 rounded-xl px-3 py-2 text-center font-black text-xs text-slate-900">
+                          <div className="bg-blue-600 border-2 border-slate-900 rounded-xl px-3 py-2 text-center font-black text-xs text-slate-900">
                             Cambios de última hora
                           </div>
-                          <div className="bg-white border-2 border-blue-900 rounded-xl px-3 py-2 text-center font-black text-xs text-slate-900">
+                          <div className="bg-white border-2 border-slate-900 rounded-xl px-3 py-2 text-center font-black text-xs text-slate-900">
                             Pendiente
                           </div>
                         </div>
@@ -2749,13 +2749,13 @@ export default function App() {
                             return (
                               <div
                                 key={ev.id}
-                                className={`border-2 border-blue-900 rounded-xl p-3 space-y-2.5 ${
-                                  ready ? 'bg-blue-100' : 'bg-white'
+                                className={`border-2 border-slate-900 rounded-xl p-3 space-y-2.5 ${
+                                  ready ? 'bg-slate-100' : 'bg-white'
                                 }`}
                               >
                                 <div className="flex flex-wrap items-center justify-between gap-2">
                                   <div className="flex flex-wrap items-center gap-2">
-                                    <span className="text-xs font-black px-2 py-0.5 rounded bg-blue-900 text-blue-600">
+                                    <span className="text-xs font-black px-2 py-0.5 rounded bg-slate-900 text-slate-600">
                                       {ev.start_time}
                                     </span>
                                     <span className="text-xs font-bold text-slate-900 flex items-center gap-1">
@@ -2763,10 +2763,10 @@ export default function App() {
                                       {ev.pax} PAX · {ev.setup_type}
                                     </span>
                                     <span
-                                      className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border border-blue-900 ${
+                                      className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border border-slate-900 ${
                                         ready
-                                          ? 'bg-blue-900 text-blue-600'
-                                          : 'bg-blue-100 text-slate-900'
+                                          ? 'bg-slate-900 text-slate-600'
+                                          : 'bg-slate-100 text-slate-900'
                                       }`}
                                     >
                                       {ready ? 'Terminado / Montado' : 'Falta por montar'}
@@ -2782,7 +2782,7 @@ export default function App() {
                                           ready ? 'falta' : 'terminado'
                                         )
                                       }
-                                      className="text-[11px] font-black px-2.5 py-1 rounded-lg border-2 border-blue-900 bg-blue-600 hover:bg-blue-100 text-slate-900"
+                                      className="text-[11px] font-black px-2.5 py-1 rounded-lg border-2 border-slate-900 bg-blue-600 hover:bg-slate-100 text-slate-900"
                                     >
                                       {ready
                                         ? 'Marcar: Falta por montar'
@@ -2791,7 +2791,7 @@ export default function App() {
                                     <button
                                       type="button"
                                       onClick={() => deleteBanquetEvent(ev)}
-                                      className="text-slate-900 hover:bg-blue-600 p-1.5 rounded-lg border border-blue-900 bg-blue-100"
+                                      className="text-slate-900 hover:bg-blue-600 p-1.5 rounded-lg border border-slate-900 bg-slate-100"
                                       title="Borrar evento"
                                     >
                                       <Trash2 className="w-4 h-4" />
@@ -2802,19 +2802,19 @@ export default function App() {
                                 <p className="text-sm font-black text-slate-900">{ev.event_name}</p>
 
                                 {ev.allergens_notes && (
-                                  <p className="text-xs font-bold text-slate-900 bg-blue-100 border border-blue-900 rounded-lg px-2.5 py-1">
+                                  <p className="text-xs font-bold text-slate-900 bg-slate-100 border border-slate-900 rounded-lg px-2.5 py-1">
                                     Alérgenos / dietas: {ev.allergens_notes}
                                   </p>
                                 )}
 
                                 {ev.extras_notes && (
-                                  <p className="text-xs font-semibold text-slate-800 bg-slate-100 border border-blue-900 rounded-lg px-2.5 py-1">
+                                  <p className="text-xs font-semibold text-slate-800 bg-slate-100 border border-slate-900 rounded-lg px-2.5 py-1">
                                     Material / extras: {ev.extras_notes}
                                   </p>
                                 )}
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                                  <div className="bg-blue-100 border border-blue-900 rounded-lg p-2 space-y-1">
+                                  <div className="bg-slate-100 border border-slate-900 rounded-lg p-2 space-y-1">
                                     <span className="block text-[11px] font-black text-slate-900">
                                       Cambios de última hora
                                     </span>
@@ -2825,11 +2825,11 @@ export default function App() {
                                         updateBanquetSalonItem(ev, 'last_minute', e.target.value)
                                       }
                                       placeholder="Añadir cambio de última hora..."
-                                      className="w-full bg-white border border-blue-900 rounded px-2 py-1 text-xs font-semibold text-slate-900"
+                                      className="w-full bg-white border border-slate-900 rounded px-2 py-1 text-xs font-semibold text-slate-900"
                                     />
                                   </div>
 
-                                  <div className="bg-blue-50 border border-blue-900 rounded-lg p-2 space-y-1">
+                                  <div className="bg-white border border-slate-900 rounded-lg p-2 space-y-1">
                                     <span className="block text-[11px] font-black text-slate-900">
                                       Pendiente
                                     </span>
@@ -2840,7 +2840,7 @@ export default function App() {
                                         updateBanquetSalonItem(ev, 'pendiente', e.target.value)
                                       }
                                       placeholder="Añadir pendiente..."
-                                      className="w-full bg-white border border-blue-900 rounded px-2 py-1 text-xs font-semibold text-slate-900"
+                                      className="w-full bg-white border border-slate-900 rounded px-2 py-1 text-xs font-semibold text-slate-900"
                                     />
                                   </div>
                                 </div>
@@ -2868,7 +2868,7 @@ export default function App() {
           <div className="space-y-4">
             <form
               onSubmit={handleAddIncidence}
-              className="bg-blue-50 border-2 border-blue-900 rounded-2xl p-4 space-y-3"
+              className="bg-white border-2 border-slate-900 rounded-2xl p-4 space-y-3"
             >
               <div className="flex items-center justify-between gap-2">
                 <h2 className="text-xs font-black uppercase tracking-wider text-slate-900">
@@ -2877,7 +2877,7 @@ export default function App() {
                 <select
                   value={incSeverity}
                   onChange={(e) => setIncSeverity(e.target.value)}
-                  className="bg-white border-2 border-blue-900 rounded-xl px-2.5 py-1 text-xs font-bold text-slate-900"
+                  className="bg-white border-2 border-slate-900 rounded-xl px-2.5 py-1 text-xs font-bold text-slate-900"
                 >
                   <option value="baja">Gravedad baja</option>
                   <option value="media">Gravedad media</option>
@@ -2891,7 +2891,7 @@ export default function App() {
                 value={incTitle}
                 onChange={(e) => setIncTitle(e.target.value)}
                 placeholder="Título de la incidencia..."
-                className="w-full bg-white border-2 border-blue-900 rounded-xl px-3.5 py-2 text-sm font-medium text-slate-900 placeholder:text-slate-400"
+                className="w-full bg-white border-2 border-slate-900 rounded-xl px-3.5 py-2 text-sm font-medium text-slate-900 placeholder:text-slate-400"
               />
 
               <textarea
@@ -2899,11 +2899,11 @@ export default function App() {
                 value={incDetails}
                 onChange={(e) => setIncDetails(e.target.value)}
                 placeholder="Detalles de la incidencia..."
-                className="w-full bg-white border-2 border-blue-900 rounded-xl px-3.5 py-2 text-xs text-slate-900 placeholder:text-slate-400"
+                className="w-full bg-white border-2 border-slate-900 rounded-xl px-3.5 py-2 text-xs text-slate-900 placeholder:text-slate-400"
               />
 
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <label className="flex items-center gap-2 text-xs font-bold text-slate-900 bg-white border-2 border-blue-900 px-3 py-1.5 rounded-xl cursor-pointer hover:bg-blue-100">
+                <label className="flex items-center gap-2 text-xs font-bold text-slate-900 bg-white border-2 border-slate-900 px-3 py-1.5 rounded-xl cursor-pointer hover:bg-slate-100">
                   <Paperclip className="w-3.5 h-3.5" />
                   <span>{incFile ? incFile.name : 'Adjuntar foto o archivo'}</span>
                   <input
@@ -2917,7 +2917,7 @@ export default function App() {
                 <button
                   type="submit"
                   disabled={uploadingFile}
-                  className="bg-blue-900 hover:bg-blue-800 text-blue-600 font-black px-4 py-2 rounded-xl text-xs border-2 border-blue-900"
+                  className="bg-slate-900 hover:bg-slate-800 text-slate-600 font-black px-4 py-2 rounded-xl text-xs border-2 border-slate-900"
                 >
                   {uploadingFile ? 'Subiendo...' : 'Registrar incidencia'}
                 </button>
@@ -2926,23 +2926,23 @@ export default function App() {
 
             <div className="space-y-2.5">
               {filteredIncidences.length === 0 ? (
-                <div className="bg-white border-2 border-dashed border-blue-900 rounded-2xl p-8 text-center text-xs font-semibold text-slate-600">
+                <div className="bg-white border-2 border-dashed border-slate-900 rounded-2xl p-8 text-center text-xs font-semibold text-slate-600">
                   No hay incidencias en esta vista.
                 </div>
               ) : (
                 filteredIncidences.map((inc) => (
                   <div
                     key={inc.id}
-                    className={`bg-white border-2 border-blue-900 rounded-2xl p-4 space-y-2 ${
+                    className={`bg-white border-2 border-slate-900 rounded-2xl p-4 space-y-2 ${
                       inc.status === 'resuelta' ? 'opacity-60 bg-slate-100' : ''
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] font-black px-2 py-0.5 rounded bg-blue-600 text-slate-900 border border-blue-900">
+                        <span className="text-[10px] font-black px-2 py-0.5 rounded bg-slate-900 text-white border border-slate-900">
                           {inc.outlet}
                         </span>
-                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-blue-900 text-blue-600">
+                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-slate-900 text-slate-600">
                           {inc.severity}
                         </span>
                       </div>
@@ -2951,14 +2951,14 @@ export default function App() {
                         <button
                           type="button"
                           onClick={() => toggleIncidenceStatus(inc)}
-                          className="text-[11px] font-black px-2.5 py-0.5 rounded-lg border-2 border-blue-900 bg-blue-100 text-slate-900"
+                          className="text-[11px] font-black px-2.5 py-0.5 rounded-lg border-2 border-slate-900 bg-slate-100 text-slate-900"
                         >
                           {inc.status === 'resuelta' ? 'Resuelta ✓' : 'Abierta · Resolver'}
                         </button>
                         <button
                           type="button"
                           onClick={() => deleteIncidence(inc)}
-                          className="text-slate-900 hover:bg-blue-600 p-1.5 rounded-lg border border-blue-900 bg-blue-100"
+                          className="text-slate-900 hover:bg-blue-600 p-1.5 rounded-lg border border-slate-900 bg-slate-100"
                           title="Borrar incidencia"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -2992,7 +2992,7 @@ export default function App() {
           <div className="space-y-4">
             <form
               onSubmit={handleAddRoomRequest}
-              className="bg-blue-50 border-2 border-blue-900 rounded-2xl p-4 space-y-3"
+              className="bg-white border-2 border-slate-900 rounded-2xl p-4 space-y-3"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 className="text-xs font-black uppercase tracking-wider text-slate-900">
@@ -3002,7 +3002,7 @@ export default function App() {
                   type="date"
                   value={reqDate}
                   onChange={(e) => setReqDate(e.target.value)}
-                  className="bg-white border-2 border-blue-900 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900"
+                  className="bg-white border-2 border-slate-900 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900"
                 />
               </div>
 
@@ -3013,7 +3013,7 @@ export default function App() {
                   value={reqRoom}
                   onChange={(e) => setReqRoom(e.target.value)}
                   placeholder="Nº Habitación (ej. 314)"
-                  className="bg-white border-2 border-blue-900 rounded-xl px-3 py-2 text-sm font-bold text-slate-900 placeholder:text-slate-400"
+                  className="bg-white border-2 border-slate-900 rounded-xl px-3 py-2 text-sm font-bold text-slate-900 placeholder:text-slate-400"
                 />
                 <input
                   type="text"
@@ -3021,7 +3021,7 @@ export default function App() {
                   value={reqText}
                   onChange={(e) => setReqText(e.target.value)}
                   placeholder="Petición del huésped..."
-                  className="sm:col-span-2 bg-white border-2 border-blue-900 rounded-xl px-3 py-2 text-sm font-medium text-slate-900 placeholder:text-slate-400"
+                  className="sm:col-span-2 bg-white border-2 border-slate-900 rounded-xl px-3 py-2 text-sm font-medium text-slate-900 placeholder:text-slate-400"
                 />
               </div>
 
@@ -3031,11 +3031,11 @@ export default function App() {
                   value={reqNotes}
                   onChange={(e) => setReqNotes(e.target.value)}
                   placeholder="Notas adicionales..."
-                  className="flex-1 bg-white border-2 border-blue-900 rounded-xl px-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400"
+                  className="flex-1 bg-white border-2 border-slate-900 rounded-xl px-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400"
                 />
                 <button
                   type="submit"
-                  className="bg-blue-900 hover:bg-blue-800 text-blue-600 font-black px-4 py-2 rounded-xl text-xs border-2 border-blue-900"
+                  className="bg-slate-900 hover:bg-slate-800 text-slate-600 font-black px-4 py-2 rounded-xl text-xs border-2 border-slate-900"
                 >
                   Añadir petición
                 </button>
@@ -3044,24 +3044,24 @@ export default function App() {
 
             <div className="space-y-2.5">
               {filteredRoomRequests.length === 0 ? (
-                <div className="bg-white border-2 border-dashed border-blue-900 rounded-2xl p-8 text-center text-xs font-semibold text-slate-600">
+                <div className="bg-white border-2 border-dashed border-slate-900 rounded-2xl p-8 text-center text-xs font-semibold text-slate-600">
                   No hay peticiones de habitaciones en esta vista.
                 </div>
               ) : (
                 filteredRoomRequests.map((r) => (
                   <div
                     key={r.id}
-                    className={`bg-white border-2 border-blue-900 rounded-2xl p-4 flex items-start justify-between gap-3 ${
+                    className={`bg-white border-2 border-slate-900 rounded-2xl p-4 flex items-start justify-between gap-3 ${
                       r.status === 'atendida' ? 'opacity-60 bg-slate-100' : ''
                     }`}
                   >
                     <div className="space-y-1 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="inline-flex items-center gap-1 bg-blue-600 text-slate-900 border border-blue-900 px-2.5 py-0.5 rounded-lg text-xs font-black">
+                        <span className="inline-flex items-center gap-1 bg-slate-900 text-white border border-slate-900 px-2.5 py-0.5 rounded-lg text-xs font-black">
                           <BedDouble className="w-3.5 h-3.5" />
                           Hab. {r.room_number}
                         </span>
-                        <span className="text-[10px] font-black px-2 py-0.5 rounded bg-blue-900 text-blue-600">
+                        <span className="text-[10px] font-black px-2 py-0.5 rounded bg-slate-900 text-slate-600">
                           {r.outlet} · {r.request_date}
                         </span>
                       </div>
@@ -3080,14 +3080,14 @@ export default function App() {
                       <button
                         type="button"
                         onClick={() => toggleRoomRequest(r)}
-                        className="text-[11px] font-black px-2.5 py-1 rounded-lg border-2 border-blue-900 bg-blue-100 text-slate-900"
+                        className="text-[11px] font-black px-2.5 py-1 rounded-lg border-2 border-slate-900 bg-slate-100 text-slate-900"
                       >
                         {r.status === 'atendida' ? 'Atendida ✓' : 'Pendiente'}
                       </button>
                       <button
                         type="button"
                         onClick={() => deleteRoomRequest(r)}
-                        className="text-slate-900 hover:bg-blue-600 p-1.5 rounded-lg border border-blue-900 bg-blue-100"
+                        className="text-slate-900 hover:bg-blue-600 p-1.5 rounded-lg border border-slate-900 bg-slate-100"
                         title="Borrar petición"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -3105,7 +3105,7 @@ export default function App() {
           <div className="space-y-4">
             <form
               onSubmit={handleAddComplaint}
-              className="bg-blue-50 border-2 border-blue-900 rounded-2xl p-4 space-y-3"
+              className="bg-white border-2 border-slate-900 rounded-2xl p-4 space-y-3"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 className="text-xs font-black uppercase tracking-wider text-slate-900">
@@ -3116,12 +3116,12 @@ export default function App() {
                     type="date"
                     value={complaintDate}
                     onChange={(e) => setComplaintDate(e.target.value)}
-                    className="bg-white border-2 border-blue-900 rounded-xl px-2.5 py-1 text-xs font-bold text-slate-900"
+                    className="bg-white border-2 border-slate-900 rounded-xl px-2.5 py-1 text-xs font-bold text-slate-900"
                   />
                   <select
                     value={recordType}
                     onChange={(e) => setRecordType(e.target.value)}
-                    className="bg-white border-2 border-blue-900 rounded-xl px-2.5 py-1 text-xs font-bold text-slate-900"
+                    className="bg-white border-2 border-slate-900 rounded-xl px-2.5 py-1 text-xs font-bold text-slate-900"
                   >
                     <option value="queja">Queja</option>
                     <option value="vip">VIP</option>
@@ -3132,7 +3132,7 @@ export default function App() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <div className="flex items-center gap-2 bg-white border-2 border-blue-900 rounded-xl px-3 py-2">
+                <div className="flex items-center gap-2 bg-white border-2 border-slate-900 rounded-xl px-3 py-2">
                   <BedDouble className="w-4 h-4 text-slate-900 shrink-0" />
                   <input
                     type="text"
@@ -3150,7 +3150,7 @@ export default function App() {
                   value={complaintText}
                   onChange={(e) => setComplaintText(e.target.value)}
                   placeholder="Escribe la queja o detalle..."
-                  className="sm:col-span-2 bg-white border-2 border-blue-900 rounded-xl px-3.5 py-2 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                  className="sm:col-span-2 bg-white border-2 border-slate-900 rounded-xl px-3.5 py-2 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none"
                 />
               </div>
 
@@ -3159,11 +3159,11 @@ export default function App() {
                 value={managerResponse}
                 onChange={(e) => setManagerResponse(e.target.value)}
                 placeholder="Solución o nota de seguimiento (opcional)..."
-                className="w-full bg-white border-2 border-blue-900 rounded-xl px-3.5 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                className="w-full bg-white border-2 border-slate-900 rounded-xl px-3.5 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none"
               />
 
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <label className="flex items-center gap-2 text-xs font-bold text-slate-900 bg-white border-2 border-blue-900 px-3 py-1.5 rounded-xl cursor-pointer hover:bg-blue-100">
+                <label className="flex items-center gap-2 text-xs font-bold text-slate-900 bg-white border-2 border-slate-900 px-3 py-1.5 rounded-xl cursor-pointer hover:bg-slate-100">
                   <Paperclip className="w-3.5 h-3.5" />
                   <span>{complaintFile ? complaintFile.name : 'Adjuntar foto o archivo'}</span>
                   <input
@@ -3177,7 +3177,7 @@ export default function App() {
                 <button
                   type="submit"
                   disabled={uploadingFile}
-                  className="bg-blue-900 hover:bg-blue-800 text-blue-600 font-black px-4 py-2 rounded-xl text-xs border-2 border-blue-900"
+                  className="bg-slate-900 hover:bg-slate-800 text-slate-600 font-black px-4 py-2 rounded-xl text-xs border-2 border-slate-900"
                 >
                   {uploadingFile ? 'Subiendo...' : 'Registrar y activar aviso del día'}
                 </button>
@@ -3186,7 +3186,7 @@ export default function App() {
 
             <div className="space-y-2.5">
               {outletComplaints.length === 0 ? (
-                <div className="bg-white border-2 border-dashed border-blue-900 rounded-2xl p-8 text-center text-xs font-semibold text-slate-600">
+                <div className="bg-white border-2 border-dashed border-slate-900 rounded-2xl p-8 text-center text-xs font-semibold text-slate-600">
                   Sin quejas registradas en esta vista.
                 </div>
               ) : (
@@ -3197,17 +3197,17 @@ export default function App() {
                   return (
                     <div
                       key={c.id}
-                      className={`border-2 border-blue-900 rounded-2xl p-4 space-y-2 ${
+                      className={`border-2 border-slate-900 rounded-2xl p-4 space-y-2 ${
                         c.status === 'cerrada'
                           ? 'bg-slate-100 opacity-60'
                           : isActiveDayNotice
-                          ? 'bg-blue-100'
+                          ? 'bg-slate-100'
                           : 'bg-white'
                       }`}
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex flex-wrap items-center gap-1.5">
-                          <span className="inline-flex items-center gap-1 bg-blue-900 text-blue-600 px-2.5 py-0.5 rounded-lg text-xs font-black">
+                          <span className="inline-flex items-center gap-1 bg-slate-900 text-slate-600 px-2.5 py-0.5 rounded-lg text-xs font-black">
                             {c.record_type === 'vip' ? (
                               <Crown className="w-3.5 h-3.5" />
                             ) : (
@@ -3215,11 +3215,11 @@ export default function App() {
                             )}
                             Hab. {c.room_number}
                           </span>
-                          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-blue-600 text-slate-900 border border-blue-900">
+                          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-slate-900 text-white border border-slate-900">
                             Día {cDate} · {c.outlet}
                           </span>
                           {isActiveDayNotice && (
-                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-blue-900 text-blue-600">
+                            <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-slate-900 text-slate-600">
                               Aviso activo todo el día
                             </span>
                           )}
@@ -3229,14 +3229,14 @@ export default function App() {
                           <button
                             type="button"
                             onClick={() => toggleComplaintStatus(c)}
-                            className="text-[11px] font-black px-2.5 py-0.5 rounded-lg border-2 border-blue-900 bg-blue-100 text-slate-900"
+                            className="text-[11px] font-black px-2.5 py-0.5 rounded-lg border-2 border-slate-900 bg-slate-100 text-slate-900"
                           >
                             {c.status === 'cerrada' ? 'Cerrada ✓' : 'Abierta · Cerrar'}
                           </button>
                           <button
                             type="button"
                             onClick={() => deleteComplaint(c)}
-                            className="text-slate-900 hover:bg-blue-600 p-1.5 rounded-lg border border-blue-900 bg-white"
+                            className="text-slate-900 hover:bg-blue-600 p-1.5 rounded-lg border border-slate-900 bg-white"
                             title="Borrar queja"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -3246,7 +3246,7 @@ export default function App() {
 
                       <p className="text-sm font-black text-slate-900">{c.complaint_text}</p>
                       {c.manager_response && (
-                        <p className="text-xs font-semibold text-slate-800 bg-white border border-blue-900 rounded-xl p-2">
+                        <p className="text-xs font-semibold text-slate-800 bg-white border border-slate-900 rounded-xl p-2">
                           Gestión: {c.manager_response}
                         </p>
                       )}
@@ -3269,7 +3269,7 @@ export default function App() {
           <div className="space-y-3.5">
             <form
               onSubmit={(e) => handleAddTask(e, 'checklist')}
-              className="bg-blue-50 border-2 border-blue-900 rounded-2xl p-4 space-y-2.5"
+              className="bg-white border-2 border-slate-900 rounded-2xl p-4 space-y-2.5"
             >
               <div className="flex flex-wrap gap-2">
                 <input
@@ -3277,12 +3277,12 @@ export default function App() {
                   value={newTaskTitle}
                   onChange={(e) => setNewTaskTitle(e.target.value)}
                   placeholder={`Añadir tarea a ${activeOutletForWrite}...`}
-                  className="flex-1 min-w-[200px] bg-white border-2 border-blue-900 rounded-xl px-3.5 py-2 text-sm font-medium text-slate-900 placeholder:text-slate-400"
+                  className="flex-1 min-w-[200px] bg-white border-2 border-slate-900 rounded-xl px-3.5 py-2 text-sm font-medium text-slate-900 placeholder:text-slate-400"
                 />
                 <select
                   value={taskPhase}
                   onChange={(e) => setTaskPhase(e.target.value)}
-                  className="bg-white border-2 border-blue-900 rounded-xl px-2.5 py-2 text-xs font-bold text-slate-900"
+                  className="bg-white border-2 border-slate-900 rounded-xl px-2.5 py-2 text-xs font-bold text-slate-900"
                 >
                   <option value="apertura">Apertura</option>
                   <option value="servicio">Servicio</option>
@@ -3290,7 +3290,7 @@ export default function App() {
                 </select>
                 <button
                   type="submit"
-                  className="bg-blue-900 hover:bg-blue-800 text-blue-600 font-black px-4 py-2 rounded-xl flex items-center gap-1 text-sm shrink-0 border-2 border-blue-900"
+                  className="bg-slate-900 hover:bg-slate-800 text-slate-600 font-black px-4 py-2 rounded-xl flex items-center gap-1 text-sm shrink-0 border-2 border-slate-900"
                 >
                   <Plus className="w-4 h-4" />
                   Añadir
@@ -3301,7 +3301,7 @@ export default function App() {
                 value={newTaskNotes}
                 onChange={(e) => setNewTaskNotes(e.target.value)}
                 placeholder="Nota opcional..."
-                className="w-full bg-white border-2 border-blue-900 rounded-xl px-3.5 py-1.5 text-xs text-slate-900 placeholder:text-slate-400"
+                className="w-full bg-white border-2 border-slate-900 rounded-xl px-3.5 py-1.5 text-xs text-slate-900 placeholder:text-slate-400"
               />
             </form>
 
@@ -3312,8 +3312,8 @@ export default function App() {
                   onClick={() => setPhaseFilter(ph.id)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-black border-2 transition ${
                     phaseFilter === ph.id
-                      ? 'bg-blue-600 border-blue-900 text-slate-900'
-                      : 'bg-white border-blue-900 text-slate-900 hover:bg-blue-100'
+                      ? 'bg-blue-600 border-slate-900 text-slate-900'
+                      : 'bg-white border-slate-900 text-slate-900 hover:bg-slate-100'
                   }`}
                 >
                   {ph.label}
@@ -3321,14 +3321,14 @@ export default function App() {
               ))}
             </div>
 
-            <div className="bg-white border-2 border-blue-900 rounded-2xl p-3 space-y-2">
+            <div className="bg-white border-2 border-slate-900 rounded-2xl p-3 space-y-2">
               <div className="flex justify-between items-center text-xs">
                 <span className="font-black text-slate-900">Checklist · {selectedOutlet}</span>
                 <span className="font-bold text-slate-800">
                   Hechas: {completedCount} / {outletChecklist.length} ({progressPercent}%)
                 </span>
               </div>
-              <div className="w-full h-2.5 bg-blue-100 border border-blue-900 rounded-full overflow-hidden">
+              <div className="w-full h-2.5 bg-slate-100 border border-slate-900 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-blue-600 transition-all duration-300"
                   style={{ width: `${progressPercent}%` }}
@@ -3338,7 +3338,7 @@ export default function App() {
 
             <div className="space-y-2">
               {outletChecklist.length === 0 ? (
-                <div className="bg-white border-2 border-dashed border-blue-900 rounded-2xl p-8 text-center text-xs font-semibold text-slate-600">
+                <div className="bg-white border-2 border-dashed border-slate-900 rounded-2xl p-8 text-center text-xs font-semibold text-slate-600">
                   Sin tareas en esta vista.
                 </div>
               ) : (
@@ -3358,7 +3358,7 @@ export default function App() {
         {/* PENDIENTES */}
         {activeTab === 'pending' && (
           <div className="space-y-3.5">
-            <div className="bg-blue-50 border-2 border-blue-900 rounded-2xl p-3.5 flex items-center justify-between gap-3">
+            <div className="bg-white border-2 border-slate-900 rounded-2xl p-3.5 flex items-center justify-between gap-3">
               <span className="text-xs font-black text-slate-900">
                 Pendientes del día ({selectedOutlet}):
               </span>
@@ -3366,13 +3366,13 @@ export default function App() {
                 type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="bg-white border-2 border-blue-900 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900"
+                className="bg-white border-2 border-slate-900 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900"
               />
             </div>
 
             <form
               onSubmit={(e) => handleAddTask(e, 'pending')}
-              className="bg-blue-50 border-2 border-blue-900 rounded-2xl p-4 space-y-2.5"
+              className="bg-white border-2 border-slate-900 rounded-2xl p-4 space-y-2.5"
             >
               <div className="flex flex-wrap gap-2">
                 <input
@@ -3380,12 +3380,12 @@ export default function App() {
                   value={newTaskTitle}
                   onChange={(e) => setNewTaskTitle(e.target.value)}
                   placeholder={`Pendiente para el ${selectedDate}...`}
-                  className="flex-1 min-w-[200px] bg-white border-2 border-blue-900 rounded-xl px-3.5 py-2 text-sm font-medium text-slate-900 placeholder:text-slate-400"
+                  className="flex-1 min-w-[200px] bg-white border-2 border-slate-900 rounded-xl px-3.5 py-2 text-sm font-medium text-slate-900 placeholder:text-slate-400"
                 />
                 <select
                   value={taskRole}
                   onChange={(e) => setTaskRole(e.target.value)}
-                  className="bg-white border-2 border-blue-900 rounded-xl px-2.5 py-2 text-xs font-bold text-slate-900"
+                  className="bg-white border-2 border-slate-900 rounded-xl px-2.5 py-2 text-xs font-bold text-slate-900"
                 >
                   {ROLES.map((r) => (
                     <option key={r} value={r}>
@@ -3396,14 +3396,14 @@ export default function App() {
                 <select
                   value={taskPriority}
                   onChange={(e) => setTaskPriority(e.target.value)}
-                  className="bg-white border-2 border-blue-900 rounded-xl px-2.5 py-2 text-xs font-bold text-slate-900"
+                  className="bg-white border-2 border-slate-900 rounded-xl px-2.5 py-2 text-xs font-bold text-slate-900"
                 >
                   <option value="normal">Normal</option>
                   <option value="importante">Importante</option>
                 </select>
                 <button
                   type="submit"
-                  className="bg-blue-900 hover:bg-blue-800 text-blue-600 font-black px-4 py-2 rounded-xl flex items-center gap-1 text-sm shrink-0 border-2 border-blue-900"
+                  className="bg-slate-900 hover:bg-slate-800 text-slate-600 font-black px-4 py-2 rounded-xl flex items-center gap-1 text-sm shrink-0 border-2 border-slate-900"
                 >
                   <Plus className="w-4 h-4" />
                   Guardar
@@ -3414,13 +3414,13 @@ export default function App() {
                 value={newTaskNotes}
                 onChange={(e) => setNewTaskNotes(e.target.value)}
                 placeholder="Detalle opcional..."
-                className="w-full bg-white border-2 border-blue-900 rounded-xl px-3.5 py-1.5 text-xs text-slate-900 placeholder:text-slate-400"
+                className="w-full bg-white border-2 border-slate-900 rounded-xl px-3.5 py-1.5 text-xs text-slate-900 placeholder:text-slate-400"
               />
             </form>
 
             <div className="space-y-2">
               {outletPending.length === 0 ? (
-                <div className="bg-white border-2 border-dashed border-blue-900 rounded-2xl p-8 text-center text-xs font-semibold text-slate-600">
+                <div className="bg-white border-2 border-dashed border-slate-900 rounded-2xl p-8 text-center text-xs font-semibold text-slate-600">
                   No hay pendientes para el {selectedDate}.
                 </div>
               ) : (
@@ -3442,12 +3442,12 @@ export default function App() {
         {/* CALENDARIO CLICABLE POR DÍA + AÑADIR EVENTOS */}
         {activeTab === 'calendar' && (
           <div className="space-y-4">
-            <div className="bg-white border-2 border-blue-900 rounded-2xl p-4 space-y-3">
+            <div className="bg-white border-2 border-slate-900 rounded-2xl p-4 space-y-3">
               <div className="flex items-center justify-between gap-2">
                 <button
                   type="button"
                   onClick={() => shiftCalendarMonth(-1)}
-                  className="p-2 rounded-xl bg-blue-100 border-2 border-blue-900 text-slate-900 hover:bg-blue-600"
+                  className="p-2 rounded-xl bg-slate-100 border-2 border-slate-900 text-slate-900 hover:bg-blue-600"
                   title="Mes anterior"
                 >
                   <ChevronLeft className="w-4 h-4" />
@@ -3460,7 +3460,7 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => shiftCalendarMonth(1)}
-                  className="p-2 rounded-xl bg-blue-100 border-2 border-blue-900 text-slate-900 hover:bg-blue-600"
+                  className="p-2 rounded-xl bg-slate-100 border-2 border-slate-900 text-slate-900 hover:bg-blue-600"
                   title="Mes siguiente"
                 >
                   <ChevronRight className="w-4 h-4" />
@@ -3493,10 +3493,10 @@ export default function App() {
                       }}
                       className={`h-12 rounded-xl border-2 flex flex-col items-center justify-center transition ${
                         isSelected
-                          ? 'bg-blue-900 text-blue-600 border-blue-900 font-black'
+                          ? 'bg-slate-900 text-slate-600 border-slate-900 font-black'
                           : isTodayCell
-                          ? 'bg-blue-100 text-slate-900 border-blue-900 font-black'
-                          : 'bg-white text-slate-900 border-slate-900 hover:bg-blue-100 font-bold'
+                          ? 'bg-slate-100 text-slate-900 border-slate-900 font-black'
+                          : 'bg-white text-slate-900 border-slate-900 hover:bg-slate-100 font-bold'
                       }`}
                     >
                       <span className="text-xs">{cell.day}</span>
@@ -3504,8 +3504,8 @@ export default function App() {
                         <span
                           className={`text-[10px] px-1.5 rounded-full font-black ${
                             isSelected
-                              ? 'bg-blue-600 text-slate-900'
-                              : 'bg-blue-900 text-blue-600'
+                              ? 'bg-slate-900 text-white'
+                              : 'bg-slate-900 text-slate-600'
                           }`}
                         >
                           {cell.count}
@@ -3519,7 +3519,7 @@ export default function App() {
 
             <form
               onSubmit={handleAddCalendarEvent}
-              className="bg-blue-50 border-2 border-blue-900 rounded-2xl p-4 space-y-3"
+              className="bg-white border-2 border-slate-900 rounded-2xl p-4 space-y-3"
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h3 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
@@ -3530,7 +3530,7 @@ export default function App() {
                   type="date"
                   value={calendarDate}
                   onChange={(e) => setCalendarDate(e.target.value)}
-                  className="bg-white border-2 border-blue-900 rounded-xl px-3 py-1 text-xs font-bold text-slate-900"
+                  className="bg-white border-2 border-slate-900 rounded-xl px-3 py-1 text-xs font-bold text-slate-900"
                 />
               </div>
 
@@ -3540,7 +3540,7 @@ export default function App() {
                 value={eventTitle}
                 onChange={(e) => setEventTitle(e.target.value)}
                 placeholder={`Escribe evento o nota para el ${calendarDate}...`}
-                className="w-full bg-white border-2 border-blue-900 rounded-xl px-3 py-2 text-sm font-medium text-slate-900 placeholder:text-slate-400"
+                className="w-full bg-white border-2 border-slate-900 rounded-xl px-3 py-2 text-sm font-medium text-slate-900 placeholder:text-slate-400"
               />
 
               <input
@@ -3548,12 +3548,12 @@ export default function App() {
                 value={eventDetails}
                 onChange={(e) => setEventDetails(e.target.value)}
                 placeholder="Detalle opcional..."
-                className="w-full bg-white border-2 border-blue-900 rounded-xl px-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400"
+                className="w-full bg-white border-2 border-slate-900 rounded-xl px-3 py-1.5 text-xs text-slate-900 placeholder:text-slate-400"
               />
 
               <button
                 type="submit"
-                className="w-full bg-blue-900 hover:bg-blue-800 text-blue-600 font-black py-2.5 rounded-xl text-sm border-2 border-blue-900"
+                className="w-full bg-slate-900 hover:bg-slate-800 text-slate-600 font-black py-2.5 rounded-xl text-sm border-2 border-slate-900"
               >
                 Guardar en el día {calendarDate}
               </button>
@@ -3568,7 +3568,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setShowAllCalendarEvents(!showAllCalendarEvents)}
-                className="text-xs font-black px-3 py-1.5 rounded-xl bg-blue-600 text-slate-900 border-2 border-blue-900"
+                className="text-xs font-black px-3 py-1.5 rounded-xl bg-slate-900 text-white border-2 border-slate-900"
               >
                 {showAllCalendarEvents ? 'Ver solo día clicado' : 'Ver todos los guardados'}
               </button>
@@ -3576,21 +3576,21 @@ export default function App() {
 
             <div className="space-y-2">
               {visibleCalendarEvents.length === 0 ? (
-                <div className="bg-white border-2 border-dashed border-blue-900 rounded-2xl p-6 text-center text-xs font-semibold text-slate-600">
+                <div className="bg-white border-2 border-dashed border-slate-900 rounded-2xl p-6 text-center text-xs font-semibold text-slate-600">
                   No hay eventos guardados para esta selección.
                 </div>
               ) : (
                 visibleCalendarEvents.map((ev) => (
                   <div
                     key={ev.id}
-                    className="bg-white border-2 border-blue-900 rounded-2xl p-3.5 flex items-start justify-between gap-3"
+                    className="bg-white border-2 border-slate-900 rounded-2xl p-3.5 flex items-start justify-between gap-3"
                   >
                     <div>
                       <div className="flex flex-wrap items-center gap-1.5 mb-1">
-                        <span className="text-[11px] font-black text-blue-600 bg-blue-900 px-2 py-0.5 rounded-md">
+                        <span className="text-[11px] font-black text-slate-600 bg-slate-900 px-2 py-0.5 rounded-md">
                           {ev.event_date}
                         </span>
-                        <span className="text-[11px] font-black text-slate-900 bg-blue-100 border border-blue-900 px-2 py-0.5 rounded-md">
+                        <span className="text-[11px] font-black text-slate-900 bg-slate-100 border border-slate-900 px-2 py-0.5 rounded-md">
                           {ev.outlet}
                         </span>
                       </div>
@@ -3601,7 +3601,7 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => deleteCalendarEvent(ev)}
-                      className="text-slate-900 hover:bg-blue-600 p-1.5 rounded-lg border border-blue-900 bg-blue-100"
+                      className="text-slate-900 hover:bg-blue-600 p-1.5 rounded-lg border border-slate-900 bg-slate-100"
                       title="Borrar evento de calendario"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -3616,7 +3616,7 @@ export default function App() {
                 <History className="w-4 h-4" />
                 <span>Registro reciente del equipo</span>
               </div>
-              <div className="bg-white border-2 border-blue-900 rounded-2xl divide-y divide-slate-200">
+              <div className="bg-white border-2 border-slate-900 rounded-2xl divide-y divide-slate-200">
                 {logs.length === 0 ? (
                   <p className="p-6 text-center text-xs text-slate-600">Sin movimientos todavía.</p>
                 ) : (
@@ -3644,7 +3644,7 @@ export default function App() {
         {/* CAMBIOS DE TURNO */}
         {activeTab === 'cambiosTurno' && (
           <div className="space-y-4">
-            <div className="bg-blue-50 border-2 border-blue-900 rounded-2xl p-4 space-y-3">
+            <div className="bg-white border-2 border-slate-900 rounded-2xl p-4 space-y-3">
               <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
                 <History className="w-4 h-4" />
                 <span>{editingCambioId ? 'Editar cambio de turno' : 'Nuevo cambio de turno'}</span>
@@ -3652,9 +3652,9 @@ export default function App() {
 
               <form onSubmit={editingCambioId ? handleEditCambioTurno : handleAddCambioTurno} className="space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="bg-blue-50 border-2 border-blue-900 rounded-xl p-3 space-y-2">
+                  <div className="bg-white border-2 border-slate-900 rounded-xl p-3 space-y-2">
                     <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-blue-900" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-slate-900" />
                       <span className="text-xs font-black uppercase text-slate-900">Turno 1</span>
                     </div>
                     <div className="flex flex-col gap-1">
@@ -3664,7 +3664,7 @@ export default function App() {
                         value={cambioEmp1}
                         onChange={(e) => setCambioEmp1(e.target.value)}
                         placeholder="Ej. Juan"
-                        className="bg-white border-2 border-blue-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
+                        className="bg-white border-2 border-slate-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-2">
@@ -3674,7 +3674,7 @@ export default function App() {
                           type="date"
                           value={cambioFecha1}
                           onChange={(e) => setCambioFecha1(e.target.value)}
-                          className="bg-white border-2 border-blue-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
+                          className="bg-white border-2 border-slate-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
                         />
                       </div>
                       <div className="flex flex-col gap-1">
@@ -3683,7 +3683,7 @@ export default function App() {
                           type="time"
                           value={cambioHoraEnt1}
                           onChange={(e) => setCambioHoraEnt1(e.target.value)}
-                          className="bg-white border-2 border-blue-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
+                          className="bg-white border-2 border-slate-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
                         />
                       </div>
                       <div className="flex flex-col gap-1">
@@ -3692,14 +3692,14 @@ export default function App() {
                           type="time"
                           value={cambioHoraSal1}
                           onChange={(e) => setCambioHoraSal1(e.target.value)}
-                          className="bg-white border-2 border-blue-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
+                          className="bg-white border-2 border-slate-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
                         />
                       </div>
                     </div>
                   </div>
-                  <div className="bg-blue-50 border-2 border-blue-900 rounded-xl p-3 space-y-2">
+                  <div className="bg-white border-2 border-slate-900 rounded-xl p-3 space-y-2">
                     <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-blue-900" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-slate-900" />
                       <span className="text-xs font-black uppercase text-slate-900">Turno 2</span>
                     </div>
                     <div className="flex flex-col gap-1">
@@ -3709,7 +3709,7 @@ export default function App() {
                         value={cambioEmp2}
                         onChange={(e) => setCambioEmp2(e.target.value)}
                         placeholder="Ej. Alejandro"
-                        className="bg-white border-2 border-blue-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
+                        className="bg-white border-2 border-slate-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-2">
@@ -3719,7 +3719,7 @@ export default function App() {
                           type="date"
                           value={cambioFecha2}
                           onChange={(e) => setCambioFecha2(e.target.value)}
-                          className="bg-white border-2 border-blue-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
+                          className="bg-white border-2 border-slate-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
                         />
                       </div>
                       <div className="flex flex-col gap-1">
@@ -3728,7 +3728,7 @@ export default function App() {
                           type="time"
                           value={cambioHoraEnt2}
                           onChange={(e) => setCambioHoraEnt2(e.target.value)}
-                          className="bg-white border-2 border-blue-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
+                          className="bg-white border-2 border-slate-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
                         />
                       </div>
                       <div className="flex flex-col gap-1">
@@ -3737,7 +3737,7 @@ export default function App() {
                           type="time"
                           value={cambioHoraSal2}
                           onChange={(e) => setCambioHoraSal2(e.target.value)}
-                          className="bg-white border-2 border-blue-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
+                          className="bg-white border-2 border-slate-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
                         />
                       </div>
                     </div>
@@ -3750,13 +3750,13 @@ export default function App() {
                     value={cambioObs}
                     onChange={(e) => setCambioObs(e.target.value)}
                     placeholder="Notas opcionales..."
-                    className="bg-white border-2 border-blue-900 rounded-xl px-3 py-2 text-xs text-slate-900"
+                    className="bg-white border-2 border-slate-900 rounded-xl px-3 py-2 text-xs text-slate-900"
                   />
                 </div>
                 <div className="flex gap-2">
                   <button
                     type="submit"
-                    className={`w-auto bg-blue-900 hover:bg-blue-800 text-blue-600 font-black px-4 py-2 rounded-xl border-2 border-blue-900 transition`}
+                    className={`w-auto bg-slate-900 hover:bg-slate-800 text-slate-600 font-black px-4 py-2 rounded-xl border-2 border-slate-900 transition`}
                   >
                     {editingCambioId ? 'Guardar cambios' : 'Registrar intercambio'}
                   </button>
@@ -3775,7 +3775,7 @@ export default function App() {
                         setCambioObs('');
                         setEditingCambioId(null);
                       }}
-                      className="w-auto bg-white hover:bg-blue-50 text-slate-900 font-black px-4 py-2 rounded-xl border-2 border-blue-900 transition"
+                      className="w-auto bg-white hover:bg-white text-slate-900 font-black px-4 py-2 rounded-xl border-2 border-slate-900 transition"
                     >
                       Cancelar
                     </button>
@@ -3784,7 +3784,7 @@ export default function App() {
               </form>
             </div>
 
-            <div className="bg-white border-2 border-blue-900 rounded-2xl p-4 space-y-2">
+            <div className="bg-white border-2 border-slate-900 rounded-2xl p-4 space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <h3 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
                   <CalendarClock className="w-4 h-4" />
@@ -3793,29 +3793,29 @@ export default function App() {
                 <input
                   type="date"
                   placeholder="Filtrar por fecha"
-                  className="bg-white border-2 border-blue-900 rounded-xl px-3 py-1.5 text-xs text-slate-900"
+                  className="bg-white border-2 border-slate-900 rounded-xl px-3 py-1.5 text-xs text-slate-900"
                 />
               </div>
 
               {cambiosTurno.length === 0 ? (
-                <div className="bg-white border-2 border-dashed border-blue-900 rounded-2xl p-8 text-center text-xs font-semibold text-slate-600">
+                <div className="bg-white border-2 border-dashed border-slate-900 rounded-2xl p-8 text-center text-xs font-semibold text-slate-600">
                   No hay cambios de turno registrados.
                 </div>
               ) : (
                 cambiosTurno.map((c) => (
                   <div
                     key={c.id}
-                    className="border-2 border-blue-900 rounded-xl p-3.5 space-y-2"
+                    className="border-2 border-slate-900 rounded-xl p-3.5 space-y-2"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="text-[10px] font-black px-2 py-0.5 rounded bg-blue-600 text-slate-900 border border-blue-900">
+                        <span className="text-[10px] font-black px-2 py-0.5 rounded bg-slate-900 text-white border border-slate-900">
                           {c.empleado_1}
                         </span>
-                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-blue-900 text-blue-600">
+                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-slate-900 text-slate-600">
                           ↔
                         </span>
-                        <span className="text-[10px] font-black px-2 py-0.5 rounded bg-blue-600 text-slate-900 border border-blue-900">
+                        <span className="text-[10px] font-black px-2 py-0.5 rounded bg-slate-900 text-white border border-slate-900">
                           {c.empleado_2}
                         </span>
                       </div>
@@ -3834,14 +3834,14 @@ export default function App() {
                             setCambioObs(c.observaciones || '');
                             setEditingCambioId(c.id);
                           }}
-                          className="text-[10px] font-black px-2 py-1 rounded-lg bg-blue-100 text-slate-900 border-2 border-blue-900 hover:bg-blue-600"
+                          className="text-[10px] font-black px-2 py-1 rounded-lg bg-slate-100 text-slate-900 border-2 border-slate-900 hover:bg-blue-600"
                         >
                           Editar
                         </button>
                         <button
                           type="button"
                           onClick={() => deleteCambioTurno(c)}
-                          className="text-slate-900 hover:bg-blue-600 p-1.5 rounded-lg border border-blue-900 bg-blue-100"
+                          className="text-slate-900 hover:bg-blue-600 p-1.5 rounded-lg border border-slate-900 bg-slate-100"
                           title="Borrar cambio"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -3850,14 +3850,14 @@ export default function App() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-2 pt-1">
-                      <div className="bg-slate-50 border border-blue-900 rounded-lg p-2 space-y-1">
+                      <div className="bg-slate-50 border border-slate-900 rounded-lg p-2 space-y-1">
                         <p className="text-[10px] font-bold text-slate-700">Turno 1</p>
                         <p className="text-sm font-black text-slate-900">{c.fecha_turno_1}</p>
                         <p className="text-[11px] font-semibold text-slate-600">
                           {c.hora_entrada_1} → {c.hora_salida_1}
                         </p>
                       </div>
-                      <div className="bg-slate-50 border border-blue-900 rounded-lg p-2 space-y-1">
+                      <div className="bg-slate-50 border border-slate-900 rounded-lg p-2 space-y-1">
                         <p className="text-[10px] font-bold text-slate-700">Turno 2</p>
                         <p className="text-sm font-black text-slate-900">{c.fecha_turno_2}</p>
                         <p className="text-[11px] font-semibold text-slate-600">
@@ -3867,7 +3867,7 @@ export default function App() {
                     </div>
 
                     {c.observaciones && (
-                      <p className="text-xs font-medium text-slate-700 bg-blue-50 border border-blue-900 rounded-lg p-2">
+                      <p className="text-xs font-medium text-slate-700 bg-white border border-slate-900 rounded-lg p-2">
                         {c.observaciones}
                       </p>
                     )}
@@ -3886,7 +3886,7 @@ export default function App() {
         {activeTab === 'estadisticas' && (
           <div className="space-y-4">
             {/* FORMULARIO DE REGISTRO RÁPIDO */}
-            <div className="bg-blue-50 border-2 border-blue-900 rounded-2xl p-4 space-y-3">
+            <div className="bg-white border-2 border-slate-900 rounded-2xl p-4 space-y-3">
               <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
                 <BarChart3 className="w-4 h-4" />
                 <span>{editingActividadId ? 'Editar registro' : 'Registro de actividad horaria'}</span>
@@ -3900,7 +3900,7 @@ export default function App() {
                       type="date"
                       value={actFecha}
                       onChange={(e) => setActFecha(e.target.value)}
-                      className="bg-white border-2 border-blue-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
+                      className="bg-white border-2 border-slate-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
                     />
                   </div>
                   <div className="flex flex-col gap-1">
@@ -3908,7 +3908,7 @@ export default function App() {
                     <select
                       value={actPuntoVenta}
                       onChange={(e) => setActPuntoVenta(e.target.value)}
-                      className="bg-white border-2 border-blue-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
+                      className="bg-white border-2 border-slate-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
                     >
                       {['Thalassa', 'Lobby Bar', 'Alborán', 'Pool-Side', 'Chill-Out', 'Salones'].map((p) => (
                         <option key={p} value={p}>{p}</option>
@@ -3921,7 +3921,7 @@ export default function App() {
                       type="time"
                       value={actFranjaInicio}
                       onChange={(e) => setActFranjaInicio(e.target.value)}
-                      className="bg-white border-2 border-blue-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
+                      className="bg-white border-2 border-slate-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
                     />
                   </div>
                   <div className="flex flex-col gap-1">
@@ -3930,7 +3930,7 @@ export default function App() {
                       type="time"
                       value={actFranjaFin}
                       onChange={(e) => setActFranjaFin(e.target.value)}
-                      className="bg-white border-2 border-blue-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
+                      className="bg-white border-2 border-slate-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
                     />
                   </div>
                 </div>
@@ -3941,7 +3941,7 @@ export default function App() {
                     <select
                       value={actNivel}
                       onChange={(e) => setActNivel(e.target.value)}
-                      className="bg-white border-2 border-blue-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
+                      className="bg-white border-2 border-slate-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
                     >
                       <option value="bajo">Bajo</option>
                       <option value="medio">Medio</option>
@@ -3956,7 +3956,7 @@ export default function App() {
                       value={actEmpleados}
                       onChange={(e) => setActEmpleados(e.target.value)}
                       placeholder="Opcional"
-                      className="bg-white border-2 border-blue-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
+                      className="bg-white border-2 border-slate-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
                     />
                   </div>
                   <div className="flex flex-col gap-1 sm:col-span-2">
@@ -3966,7 +3966,7 @@ export default function App() {
                       value={actObs}
                       onChange={(e) => setActObs(e.target.value)}
                       placeholder="Notas opcionales..."
-                      className="bg-white border-2 border-blue-900 rounded-xl px-3 py-2 text-xs text-slate-900"
+                      className="bg-white border-2 border-slate-900 rounded-xl px-3 py-2 text-xs text-slate-900"
                     />
                   </div>
                 </div>
@@ -3974,7 +3974,7 @@ export default function App() {
                 <div className="flex gap-2">
                   <button
                     type="submit"
-                    className={`w-auto bg-blue-900 hover:bg-blue-800 text-blue-600 font-black px-4 py-2 rounded-xl border-2 border-blue-900 transition`}
+                    className={`w-auto bg-slate-900 hover:bg-slate-800 text-slate-600 font-black px-4 py-2 rounded-xl border-2 border-slate-900 transition`}
                   >
                     {editingActividadId ? 'Guardar cambios' : 'Registrar actividad'}
                   </button>
@@ -3991,7 +3991,7 @@ export default function App() {
                         setActObs('');
                         setEditingActividadId(null);
                       }}
-                      className="w-auto bg-white hover:bg-blue-50 text-slate-900 font-black px-4 py-2 rounded-xl border-2 border-blue-900 transition"
+                      className="w-auto bg-white hover:bg-white text-slate-900 font-black px-4 py-2 rounded-xl border-2 border-slate-900 transition"
                     >
                       Cancelar
                     </button>
@@ -4001,7 +4001,7 @@ export default function App() {
             </div>
 
             {/* FILTROS */}
-            <div className="bg-white border-2 border-blue-900 rounded-2xl p-4 space-y-3">
+            <div className="bg-white border-2 border-slate-900 rounded-2xl p-4 space-y-3">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-xs font-black text-slate-700">Filtrar por punto de venta:</span>
                 <div className="flex gap-1 overflow-x-auto">
@@ -4011,8 +4011,8 @@ export default function App() {
                       onClick={() => setActFiltroPunto(p)}
                       className={`px-3 py-1 rounded-xl text-xs font-black border-2 transition ${
                         actFiltroPunto === p
-                          ? 'bg-blue-900 text-blue-600 border-blue-900'
-                          : 'bg-white text-slate-900 border-blue-900 hover:bg-blue-100'
+                          ? 'bg-slate-900 text-slate-600 border-slate-900'
+                          : 'bg-white text-slate-900 border-slate-900 hover:bg-slate-100'
                       }`}
                     >
                       {p}
@@ -4027,29 +4027,29 @@ export default function App() {
                   type="date"
                   value={actFiltroFecha}
                   onChange={(e) => setActFiltroFecha(e.target.value)}
-                  className="bg-white border-2 border-blue-900 rounded-xl px-3 py-1.5 text-xs text-slate-900"
+                  className="bg-white border-2 border-slate-900 rounded-xl px-3 py-1.5 text-xs text-slate-900"
                 />
               </div>
             </div>
 
             {/* TARJETAS RESUMEN */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="bg-white border-2 border-blue-900 rounded-2xl p-4 space-y-2">
+              <div className="bg-white border-2 border-slate-900 rounded-2xl p-4 space-y-2">
                 <p className="text-xs font-black uppercase tracking-wider text-slate-700">Total registros</p>
                 <p className="text-2xl font-black text-slate-900">{filteredActividad.length}</p>
               </div>
-              <div className="bg-white border-2 border-blue-900 rounded-2xl p-4 space-y-2">
+              <div className="bg-white border-2 border-slate-900 rounded-2xl p-4 space-y-2">
                 <p className="text-xs font-black uppercase tracking-wider text-slate-700">Punto más activo</p>
                 <p className="text-xl font-black text-slate-900">{puntoMasActivo || '—'}</p>
               </div>
-              <div className="bg-white border-2 border-blue-900 rounded-2xl p-4 space-y-2">
+              <div className="bg-white border-2 border-slate-900 rounded-2xl p-4 space-y-2">
                 <p className="text-xs font-black uppercase tracking-wider text-slate-700">Franja punta</p>
                 <p className="text-xl font-black text-slate-900">{franjaPunta || '—'}</p>
               </div>
             </div>
 
             {/* MAPA DE CALOR */}
-            <div className="bg-white border-2 border-blue-900 rounded-2xl p-4 space-y-3">
+            <div className="bg-white border-2 border-slate-900 rounded-2xl p-4 space-y-3">
               <h3 className="text-xs font-black uppercase tracking-wider text-slate-900">
                 Mapa de calor - Actividad por día y hora
               </h3>
@@ -4057,9 +4057,9 @@ export default function App() {
                 <table className="w-full text-center border-collapse">
                   <thead>
                     <tr>
-                      <th className="px-2 py-2 text-[10px] font-black text-slate-700 border-b-2 border-blue-900">Día \ Hora</th>
+                      <th className="px-2 py-2 text-[10px] font-black text-slate-700 border-b-2 border-slate-900">Día \ Hora</th>
                       {['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'].map((h) => (
-                        <th key={h} className="px-1 py-2 text-[10px] font-black text-slate-700 border-b-2 border-blue-900">{h}</th>
+                        <th key={h} className="px-1 py-2 text-[10px] font-black text-slate-700 border-b-2 border-slate-900">{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -4083,25 +4083,25 @@ export default function App() {
             </div>
 
             {/* LISTA DE REGISTROS */}
-            <div className="bg-white border-2 border-blue-900 rounded-2xl p-4 space-y-2">
+            <div className="bg-white border-2 border-slate-900 rounded-2xl p-4 space-y-2">
               <h3 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
                 <ClipboardList className="w-4 h-4" />
                 <span>Registros de actividad</span>
               </h3>
 
               {filteredActividad.length === 0 ? (
-                <div className="bg-white border-2 border-dashed border-blue-900 rounded-2xl p-8 text-center text-xs font-semibold text-slate-600">
+                <div className="bg-white border-2 border-dashed border-slate-900 rounded-2xl p-8 text-center text-xs font-semibold text-slate-600">
                   No hay registros de actividad horaria.
                 </div>
               ) : (
                 filteredActividad.map((a) => (
-                  <div key={a.id} className="border-2 border-blue-900 rounded-xl p-3 space-y-2">
+                  <div key={a.id} className="border-2 border-slate-900 rounded-xl p-3 space-y-2">
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] font-black border ${
                             a.nivel_actividad === 'bajo' ? 'bg-green-100 text-green-800 border-green-300' :
-                            a.nivel_actividad === 'medio' ? 'bg-blue-100 text-amber-800 border-blue-300' :
+                            a.nivel_actividad === 'medio' ? 'bg-slate-100 text-amber-800 border-blue-300' :
                             a.nivel_actividad === 'alto' ? 'bg-orange-100 text-orange-800 border-orange-300' :
                             'bg-rose-100 text-rose-800 border-rose-300'
                           }`}
@@ -4129,14 +4129,14 @@ export default function App() {
                             setActObs(a.observaciones || '');
                             setEditingActividadId(a.id);
                           }}
-                          className="text-[10px] font-black px-2 py-1 rounded-lg bg-blue-100 text-slate-900 border-2 border-blue-900 hover:bg-blue-600"
+                          className="text-[10px] font-black px-2 py-1 rounded-lg bg-slate-100 text-slate-900 border-2 border-slate-900 hover:bg-blue-600"
                         >
                           Editar
                         </button>
                         <button
                           type="button"
                           onClick={() => deleteActividad(a)}
-                          className="text-slate-900 hover:bg-blue-600 p-1.5 rounded-lg border border-blue-900 bg-blue-100"
+                          className="text-slate-900 hover:bg-blue-600 p-1.5 rounded-lg border border-slate-900 bg-slate-100"
                           title="Borrar registro"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -4149,7 +4149,7 @@ export default function App() {
                         <span className="text-xs font-black text-slate-600">{a.num_empleados} empleados</span>
                       )}
                       {a.observaciones && (
-                        <span className="text-xs font-medium text-slate-700 bg-blue-50 border border-blue-900 rounded px-2 py-1">{a.observaciones}</span>
+                        <span className="text-xs font-medium text-slate-700 bg-white border border-slate-900 rounded px-2 py-1">{a.observaciones}</span>
                       )}
                     </div>
                     <p className="text-[11px] font-semibold text-slate-600">
@@ -4166,7 +4166,7 @@ export default function App() {
         {activeTab === 'avisos' && (
           <div className="space-y-4">
             {/* FORMULARIO DE AVISO */}
-            <div className="bg-blue-50 border-2 border-blue-900 rounded-2xl p-4 space-y-3">
+            <div className="bg-white border-2 border-slate-900 rounded-2xl p-4 space-y-3">
               <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
                 <BellRing className="w-4 h-4" />
                 <span>{editingAvisoId ? 'Editar aviso' : 'Nuevo aviso de última hora'}</span>
@@ -4181,7 +4181,7 @@ export default function App() {
                       value={avisoTitulo}
                       onChange={(e) => setAvisoTitulo(e.target.value)}
                       placeholder="Ej. Cierre inesperado de cocina"
-                      className="bg-white border-2 border-blue-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
+                      className="bg-white border-2 border-slate-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
                     />
                   </div>
                   <div className="flex flex-col gap-1">
@@ -4189,7 +4189,7 @@ export default function App() {
                     <select
                       value={avisoPrioridad}
                       onChange={(e) => setAvisoPrioridad(e.target.value)}
-                      className="bg-white border-2 border-blue-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
+                      className="bg-white border-2 border-slate-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
                     >
                       <option value="alta">Alta</option>
                       <option value="media">Media</option>
@@ -4205,7 +4205,7 @@ export default function App() {
                     value={avisoMensaje}
                     onChange={(e) => setAvisoMensaje(e.target.value)}
                     placeholder="Describe el aviso de última hora..."
-                    className="bg-white border-2 border-blue-900 rounded-xl px-3 py-2 text-xs text-slate-900"
+                    className="bg-white border-2 border-slate-900 rounded-xl px-3 py-2 text-xs text-slate-900"
                   />
                 </div>
 
@@ -4216,7 +4216,7 @@ export default function App() {
                       type="date"
                       value={avisoFechaExpiracion}
                       onChange={(e) => setAvisoFechaExpiracion(e.target.value)}
-                      className="bg-white border-2 border-blue-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
+                      className="bg-white border-2 border-slate-900 rounded-xl px-3 py-2 text-xs font-bold text-slate-900"
                     />
                   </div>
                 </div>
@@ -4224,7 +4224,7 @@ export default function App() {
                 <div className="flex gap-2">
                   <button
                     type="submit"
-                    className={`w-auto bg-blue-900 hover:bg-blue-800 text-blue-600 font-black px-4 py-2 rounded-xl border-2 border-blue-900 transition`}
+                    className={`w-auto bg-slate-900 hover:bg-slate-800 text-slate-600 font-black px-4 py-2 rounded-xl border-2 border-slate-900 transition`}
                   >
                     {editingAvisoId ? 'Guardar cambios' : 'Publicar aviso'}
                   </button>
@@ -4238,7 +4238,7 @@ export default function App() {
                         setAvisoFechaExpiracion('');
                         setEditingAvisoId(null);
                       }}
-                      className="w-auto bg-white hover:bg-blue-50 text-slate-900 font-black px-4 py-2 rounded-xl border-2 border-blue-900 transition"
+                      className="w-auto bg-white hover:bg-white text-slate-900 font-black px-4 py-2 rounded-xl border-2 border-slate-900 transition"
                     >
                       Cancelar
                     </button>
@@ -4248,19 +4248,19 @@ export default function App() {
             </div>
 
             {/* LISTADO DE AVISOS ACTIVOS */}
-            <div className="bg-white border-2 border-blue-900 rounded-2xl p-4 space-y-2">
+            <div className="bg-white border-2 border-slate-900 rounded-2xl p-4 space-y-2">
               <h3 className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-1.5">
                 <ClipboardList className="w-4 h-4" />
                 <span>Avisos activos</span>
               </h3>
 
               {avisos.length === 0 ? (
-                <div className="bg-white border-2 border-dashed border-blue-900 rounded-2xl p-8 text-center text-xs font-semibold text-slate-600">
+                <div className="bg-white border-2 border-dashed border-slate-900 rounded-2xl p-8 text-center text-xs font-semibold text-slate-600">
                   No hay avisos de última hora activos.
                 </div>
               ) : (
                 avisos.map((a) => (
-                  <div key={a.id} className="border-2 border-blue-900 rounded-xl p-3 space-y-2">
+                  <div key={a.id} className="border-2 border-slate-900 rounded-xl p-3 space-y-2">
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
                         <span
@@ -4268,8 +4268,8 @@ export default function App() {
                             a.prioridad === 'alta'
                               ? 'bg-rose-100 text-rose-800 border-rose-300'
                               : a.prioridad === 'media'
-                              ? 'bg-blue-100 text-amber-800 border-blue-300'
-                              : 'bg-blue-100 text-blue-800 border-blue-300'
+                              ? 'bg-slate-100 text-amber-800 border-blue-300'
+                              : 'bg-slate-100 text-blue-800 border-blue-300'
                           }`}
                         >
                           {a.prioridad.toUpperCase()}
@@ -4288,14 +4288,14 @@ export default function App() {
                             setAvisoFechaExpiracion(a.fecha_expiracion || '');
                             setEditingAvisoId(a.id);
                           }}
-                          className="text-[10px] font-black px-2 py-1 rounded-lg bg-blue-100 text-slate-900 border-2 border-blue-900 hover:bg-blue-600"
+                          className="text-[10px] font-black px-2 py-1 rounded-lg bg-slate-100 text-slate-900 border-2 border-slate-900 hover:bg-blue-600"
                         >
                           Editar
                         </button>
                         <button
                           type="button"
                           onClick={() => cerrarAviso(a)}
-                          className="text-slate-900 hover:bg-rose-400 p-1.5 rounded-lg border border-blue-900 bg-rose-100"
+                          className="text-slate-900 hover:bg-rose-400 p-1.5 rounded-lg border border-slate-900 bg-rose-100"
                           title="Cerrar aviso"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -4327,14 +4327,14 @@ export default function App() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="relative max-w-2xl w-full bg-white border-2 border-blue-900 rounded-2xl p-3 space-y-2"
+            className="relative max-w-2xl w-full bg-white border-2 border-slate-900 rounded-2xl p-3 space-y-2"
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-black text-slate-900">Vista previa de imagen</span>
               <button
                 type="button"
                 onClick={() => setPreviewImageUrl(null)}
-                className="p-1.5 rounded-lg bg-blue-600 border border-blue-900 text-slate-900"
+                className="p-1.5 rounded-lg bg-blue-600 border border-slate-900 text-slate-900"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -4360,14 +4360,14 @@ function AttachmentPreview({ url, name, onOpenImage }) {
         <button
           type="button"
           onClick={() => onOpenImage(url)}
-          className="group relative inline-block overflow-hidden rounded-xl border-2 border-blue-900"
+          className="group relative inline-block overflow-hidden rounded-xl border-2 border-slate-900"
         >
           <img
             src={url}
             alt={name || 'Foto adjunta'}
             className="h-24 w-36 object-cover group-hover:scale-105 transition"
           />
-          <span className="block text-[10px] font-bold bg-blue-900 text-blue-600 px-2 py-0.5 truncate max-w-[144px]">
+          <span className="block text-[10px] font-bold bg-slate-900 text-slate-600 px-2 py-0.5 truncate max-w-[144px]">
             {name || 'Ver foto'}
           </span>
         </button>
@@ -4381,7 +4381,7 @@ function AttachmentPreview({ url, name, onOpenImage }) {
         href={url}
         target="_blank"
         rel="noreferrer"
-        className="inline-flex items-center gap-1.5 text-xs font-black text-slate-900 bg-blue-100 hover:bg-blue-600 border-2 border-blue-900 px-3 py-1.5 rounded-xl transition"
+        className="inline-flex items-center gap-1.5 text-xs font-black text-slate-900 bg-slate-100 hover:bg-blue-600 border-2 border-slate-900 px-3 py-1.5 rounded-xl transition"
       >
         <FileText className="w-3.5 h-3.5" />
         <span>{name || 'Abrir archivo adjunto'}</span>
@@ -4393,7 +4393,7 @@ function AttachmentPreview({ url, name, onOpenImage }) {
 function TaskCard({ task, onToggle, onDelete, showRollover, onRollover }) {
   return (
     <div
-      className={`bg-white border-2 border-blue-900 rounded-2xl p-3.5 flex items-start justify-between gap-3 transition ${
+      className={`bg-white border-2 border-slate-900 rounded-2xl p-3.5 flex items-start justify-between gap-3 transition ${
         task.completed ? 'opacity-60 bg-slate-100' : ''
       }`}
     >
@@ -4405,16 +4405,16 @@ function TaskCard({ task, onToggle, onDelete, showRollover, onRollover }) {
         )}
         <div className="space-y-1">
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-[10px] font-black px-2 py-0.5 rounded bg-blue-600 text-slate-900 border border-blue-900">
+            <span className="text-[10px] font-black px-2 py-0.5 rounded bg-slate-900 text-white border border-slate-900">
               {task.outlet}
             </span>
             {task.shift_phase && task.shift_phase !== 'general' && (
-              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-blue-900 text-blue-600">
+              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-slate-900 text-slate-600">
                 {task.shift_phase}
               </span>
             )}
             {task.assigned_role && task.assigned_role !== 'Todos' && (
-              <span className="text-[10px] font-black px-2 py-0.5 rounded bg-blue-200 text-slate-900 border border-blue-900">
+              <span className="text-[10px] font-black px-2 py-0.5 rounded bg-slate-200 text-slate-900 border border-slate-900">
                 {task.assigned_role}
               </span>
             )}
@@ -4439,7 +4439,7 @@ function TaskCard({ task, onToggle, onDelete, showRollover, onRollover }) {
           <button
             type="button"
             onClick={onRollover}
-            className="text-[10px] font-black px-2 py-1 rounded-lg bg-blue-100 text-slate-900 border-2 border-blue-900 hover:bg-blue-600"
+            className="text-[10px] font-black px-2 py-1 rounded-lg bg-slate-100 text-slate-900 border-2 border-slate-900 hover:bg-blue-600"
             title="Pasar pendiente al día siguiente"
           >
             +1 día
@@ -4448,7 +4448,7 @@ function TaskCard({ task, onToggle, onDelete, showRollover, onRollover }) {
         <button
           type="button"
           onClick={onDelete}
-          className="text-slate-900 hover:bg-blue-600 p-1.5 rounded-lg border border-blue-900 bg-blue-100"
+          className="text-slate-900 hover:bg-blue-600 p-1.5 rounded-lg border border-slate-900 bg-slate-100"
           title="Borrar"
         >
           <Trash2 className="w-4 h-4" />
