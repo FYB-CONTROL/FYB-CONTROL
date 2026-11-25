@@ -1,56 +1,43 @@
-# REGLAS DEL PROYECTO FYB-CONTROL
+# REGLAS OBLIGATORIAS DE TRABAJO PARA CLINE
 
-## 1. Identidad y objetivo
-Este proyecto es FYB-CONTROL, una aplicación de gestión y coordinación de operaciones de Food & Beverage (F&B) de hotel.
+## 1. Ejecutar las instrucciones
+- Cuando el usuario solicite un cambio, debes realizarlo directamente en los archivos del proyecto.
+- No respondas con análisis, explicaciones, sugerencias o propuestas en lugar de ejecutar el cambio.
+- No preguntes si quieres realizarlo cuando el usuario ya ha dado la orden.
+- No des por terminada una tarea hasta haber comprobado que el cambio existe realmente en el archivo.
 
-El objetivo es mejorar la organización, supervisión, seguimiento de tareas, incidencias, eventos y comunicación entre responsables.
+## 2. Modificaciones precisas
+- Modifica exclusivamente lo que el usuario haya solicitado.
+- No cambies otras funciones, componentes, archivos, estilos, configuraciones ni dependencias.
+- No hagas refactorizaciones ni mejoras adicionales por iniciativa propia.
+- Conserva el funcionamiento existente.
 
-## 2. Inspección obligatoria
-- Antes de modificar cualquier archivo, inspecciona su contenido actual.
-- Comprueba la estructura real del proyecto.
-- No inventes archivos, carpetas, funciones, tablas ni componentes.
-- No des por hecho que una funcionalidad existe sin comprobarlo en el código.
-- Utiliza las herramientas de lectura y edición de archivos de Cline.
-
-## 3. Protección del proyecto
-- Conserva las funcionalidades que ya funcionan.
-- No elimines código sin autorización.
-- No cambies dependencias ni versiones sin autorización.
-- No modifiques package.json ni package-lock.json salvo que sea necesario y esté autorizado.
-- No modifiques la configuración de Supabase, autenticación o políticas RLS sin autorización expresa.
-- No realices cambios en la base de datos sin autorización expresa.
-- No sobrescribas archivos completos cuando sea suficiente un cambio localizado.
-
-## 4. Forma de trabajar
-- Trabaja directamente sobre los archivos del proyecto.
-- No pidas al usuario que copie y pegue código manualmente cuando puedas editarlo con tus herramientas.
-- Antes de implementar una funcionalidad, explica brevemente qué archivos necesitarás modificar.
-- Realiza cambios pequeños y ordenados.
-- Si una decisión puede afectar a datos, permisos, seguridad o funcionalidades existentes, consulta antes de actuar.
-
-## 5. Comprobaciones
+## 3. Verificación obligatoria
 Después de cada modificación:
-- Comprueba los cambios realizados.
-- Ejecuta las validaciones apropiadas cuando estén autorizadas.
-- Comprueba que no se han introducido errores.
-- Informa de los archivos modificados y del resultado de las pruebas.
-- No afirmes que una prueba ha sido superada si no se ha ejecutado correctamente.
+1. Lee el archivo original y localiza exactamente el código que hay que cambiar.
+2. Realiza la modificación directamente en el archivo.
+3. Guarda el archivo.
+4. Vuelve a leer el fragmento modificado.
+5. Comprueba que el código antiguo ha desaparecido cuando debía eliminarse.
+6. Comprueba que el código nuevo aparece una sola vez donde corresponde.
+7. Comprueba que no has introducido duplicados ni errores de sintaxis.
 
-## 6. Comunicación
-- Comunícate siempre en español.
-- Explica las cuestiones técnicas con claridad.
-- No abrumes al usuario con demasiados pasos.
-- No inventes resultados ni presentes suposiciones como hechos.
-- Si no puedes completar una operación, explica exactamente qué ha fallado.
+## 4. No inventar resultados
+- Nunca afirmes que has modificado, guardado o comprobado un archivo si no lo has hecho realmente.
+- Nunca inventes líneas, resultados de comandos ni verificaciones.
+- Si una herramienta falla, informa del error real y no simules que el cambio se ha realizado.
 
-## 7. Autorizaciones
-El usuario autoriza la lectura y edición de los archivos del proyecto FYB-CONTROL para las tareas que solicite.
+## 5. Protección del proyecto
+- No modifiques la base de datos, Supabase, políticas RLS, dependencias ni archivos de configuración sin autorización expresa.
+- No elimines código que no esté relacionado con la petición.
+- No instales paquetes.
+- No ejecutes operaciones destructivas sin autorización.
 
-Esta autorización no incluye:
-- Cambios en la base de datos o políticas de seguridad.
-- Eliminación de datos.
-- Cambios de dependencias o infraestructura.
-- Despliegues a producción.
-- Operaciones externas o destructivas.
+## 6. Forma de responder
+- Sé breve y directo.
+- Ejecuta primero y explica después.
+- Cuando termines, indica el archivo modificado y el cambio realizado.
+- No incluyas recomendaciones ni próximos pasos que el usuario no haya solicitado.
 
-Estas acciones requieren autorización expresa antes de ejecutarse.
+## REGLA PRINCIPAL
+EL OBJETIVO ES MODIFICAR EL PROYECTO REAL, NO SIMULAR QUE SE HA MODIFICADO. LA VERIFICACIÓN DEL ARCHIVO ES OBLIGATORIA.

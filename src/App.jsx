@@ -547,9 +547,7 @@ export default function App() {
       .insert([
         {
           title,
-outlet: selectedOutlet,
-
-          outlet: activeOutletForWrite,
+          outlet: selectedOutlet,
           section,
           due_date: selectedDate,
           notes: newTaskNotes.trim() || null,
