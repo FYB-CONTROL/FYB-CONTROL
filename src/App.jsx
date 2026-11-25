@@ -152,6 +152,14 @@ export default function App() {
   const [actFiltroFecha, setActFiltroFecha] = useState('');
   const [actFiltroSemana, setActFiltroSemana] = useState('');
 
+  // AVISOS DE ÚLTIMA HORA
+  const [avisos, setAvisos] = useState([]);
+  const [avisoTitulo, setAvisoTitulo] = useState('');
+  const [avisoMensaje, setAvisoMensaje] = useState('');
+  const [avisoPrioridad, setAvisoPrioridad] = useState('alta');
+  const [avisoFechaExpiracion, setAvisoFechaExpiracion] = useState('');
+  const [editingAvisoId, setEditingAvisoId] = useState(null);
+
   // Relevo
   const [handoverType, setHandoverType] = useState('relevo');
   const [handoverPriority, setHandoverPriority] = useState('normal');
@@ -308,11 +316,23 @@ export default function App() {
     setActividadHoraria(data || []);
   }
 
+  async function loadAvisos() {
+    const hoy = toLocalDateStr(new Date());
+    const { data } = await supabase
+      .from('avisos_ultima_hora')
+      .select('*')
+      .or(`fecha_expiracion.is.null,fecha_expiracion.gte.${hoy}`)
+      .order('creado_en', { ascending: false });
+
+    setAvisos(data || []);
+  }
+
   useEffect(() => {
     if (!session) return;
     loadAllData();
     loadCambiosTurno();
     loadActividadHoraria();
+    loadAvisos();
 
     const channel = supabase
       .channel('h10-fyb-sync-v9')
@@ -326,6 +346,7 @@ export default function App() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'audit_logs' }, () => loadAllData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'cambios_turno' }, () => loadCambiosTurno())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'actividad_horaria' }, () => loadActividadHoraria())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'avisos_ultima_hora' }, () => loadAvisos())
       .subscribe();
 
     return () => {
@@ -1145,6 +1166,81 @@ export default function App() {
     }
   }
 
+  // AVISOS DE ÚLTIMA HORA
+  async function handleAddAviso(e) {
+    e.preventDefault();
+    if (!avisoTitulo.trim() || !avisoMensaje.trim()) return;
+
+    const actor = profileName || session.user.email;
+
+    const { data, error } = await supabase
+      .from('avisos_ultima_hora')
+      .insert([
+        {
+          titulo: avisoTitulo.trim(),
+          mensaje: avisoMensaje.trim(),
+          prioridad: avisoPrioridad,
+          fecha_expiracion: avisoFechaExpiracion || null,
+          creado_por: actor,
+        },
+      ])
+      .select()
+      .single();
+
+    if (!error && data) {
+      setAvisos((prev) => [data, ...prev]);
+      await addLog('Registró aviso última hora', avisoTitulo.trim());
+      setAvisoTitulo('');
+      setAvisoMensaje('');
+      setAvisoPrioridad('alta');
+      setAvisoFechaExpiracion('');
+      setEditingAvisoId(null);
+    } else if (error) {
+      alert(`Error al registrar aviso: ${error.message}`);
+    }
+  }
+
+  async function handleEditAviso(e) {
+    e.preventDefault();
+    if (!editingAvisoId) return;
+    if (!avisoTitulo.trim() || !avisoMensaje.trim()) return;
+
+    const actor = profileName || session.user.email;
+
+    const { error } = await supabase
+      .from('avisos_ultima_hora')
+      .update({
+        titulo: avisoTitulo.trim(),
+        mensaje: avisoMensaje.trim(),
+        prioridad: avisoPrioridad,
+        fecha_expiracion: avisoFechaExpiracion || null,
+      })
+      .eq('id', editingAvisoId);
+
+    if (!error) {
+      await loadAvisos();
+      await addLog('Editó aviso última hora', avisoTitulo.trim());
+      setAvisoTitulo('');
+      setAvisoMensaje('');
+      setAvisoPrioridad('alta');
+      setAvisoFechaExpiracion('');
+      setEditingAvisoId(null);
+    } else if (error) {
+      alert(`Error al editar aviso: ${error.message}`);
+    }
+  }
+
+  async function cerrarAviso(item) {
+    setAvisos((prev) => prev.filter((a) => a.id !== item.id));
+    const { error } = await supabase.from('avisos_ultima_hora').delete().eq('id', item.id);
+    if (error) {
+      alert(`No se pudo cerrar: ${error.message}`);
+      await loadAvisos();
+    } else {
+      await addLog('Cerró aviso', item.titulo);
+    }
+  }
+
   if (loadingAuth) {
     return (
       <div className="min-h-screen bg-white text-slate-900 flex items-center justify-center text-sm">
@@ -1800,6 +1896,18 @@ export default function App() {
             <BarChart3 className="w-4 h-4" />
             <span>Estadísticas</span>
           </button>
+
+          <button
+            onClick={() => setActiveTab('avisos')}
+            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[10px] font-black transition ${
+              activeTab === 'avisos'
+                ? 'bg-slate-950 text-amber-400'
+                : 'bg-white text-slate-950 border border-slate-900 hover:bg-amber-300'
+            }`}
+          >
+            <BellRing className="w-4 h-4" />
+            <span>Avisos</span>
+          </button>
         </div>
 
         {showComplaintsInCurrentView && activeTab !== 'complaints' && (
@@ -1817,6 +1925,72 @@ export default function App() {
             >
               Abrir Quejas/VIP
             </button>
+          </div>
+        )}
+
+        {/* AVISOS DE ÚLTIMA HORA - PRIMERA LÍNEA */}
+        {avisos.length > 0 && (
+          <div className="bg-rose-50 border-2 border-rose-400 rounded-2xl p-4 space-y-2 mb-4">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-xs font-black text-slate-950">
+                <BellRing className="w-5 h-5 text-rose-700 shrink-0" />
+                <span>Avisos de Última Hora ({avisos.length})</span>
+              </div>
+              <button
+                onClick={() => setActiveTab('avisos')}
+                className="text-[11px] font-black bg-slate-950 text-amber-400 px-2.5 py-1 rounded-lg"
+              >
+                Gestionar Avisos
+              </button>
+            </div>
+            <div className="space-y-1">
+              {avisos.map((a) => (
+                <div
+                  key={a.id}
+                  className={`p-2.5 rounded-xl border flex items-start justify-between gap-2 ${
+                    a.prioridad === 'alta'
+                      ? 'bg-rose-100 border-rose-300'
+                      : a.prioridad === 'media'
+                      ? 'bg-amber-100 border-amber-300'
+                      : 'bg-blue-100 border-blue-300'
+                  }`}
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border ${
+                          a.prioridad === 'alta'
+                            ? 'bg-rose-200 text-rose-800 border-rose-300'
+                            : a.prioridad === 'media'
+                            ? 'bg-amber-200 text-amber-800 border-amber-300'
+                            : 'bg-blue-200 text-blue-800 border-blue-300'
+                        }`}
+                      >
+                        {a.prioridad.toUpperCase()}
+                      </span>
+                      <span className="text-[10px] font-semibold text-slate-600">
+                        Por {a.creado_por}
+                      </span>
+                    </div>
+                    <p className="text-sm font-black text-slate-950 mt-0.5">{a.titulo}</p>
+                    <p className="text-xs font-medium text-slate-700 mt-0.5">{a.mensaje}</p>
+                    {a.fecha_expiracion && (
+                      <p className="text-[10px] font-black text-slate-500 mt-0.5">
+                        Vence: {a.fecha_expiracion}
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => cerrarAviso(a)}
+                    className="text-slate-950 hover:bg-rose-400 p-1.5 rounded-lg border border-slate-950 bg-rose-100"
+                    title="Cerrar aviso"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -3970,6 +4144,163 @@ export default function App() {
                     </div>
                     <p className="text-[11px] font-semibold text-slate-600">
                       Por {a.creado_por} · {new Date(a.creado_en).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* AVISOS DE ÚLTIMA HORA - GESTIÓN */}
+        {activeTab === 'avisos' && (
+          <div className="space-y-4">
+            {/* FORMULARIO DE AVISO */}
+            <div className="bg-amber-50 border-2 border-slate-950 rounded-2xl p-4 space-y-3">
+              <h2 className="text-xs font-black uppercase tracking-wider text-slate-950 flex items-center gap-2">
+                <BellRing className="w-4 h-4" />
+                <span>{editingAvisoId ? 'Editar aviso' : 'Nuevo aviso de última hora'}</span>
+              </h2>
+
+              <form onSubmit={editingAvisoId ? handleEditAviso : handleAddAviso} className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-black text-slate-700">Título</label>
+                    <input
+                      type="text"
+                      value={avisoTitulo}
+                      onChange={(e) => setAvisoTitulo(e.target.value)}
+                      placeholder="Ej. Cierre inesperado de cocina"
+                      className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-black text-slate-700">Prioridad</label>
+                    <select
+                      value={avisoPrioridad}
+                      onChange={(e) => setAvisoPrioridad(e.target.value)}
+                      className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                    >
+                      <option value="alta">Alta</option>
+                      <option value="media">Media</option>
+                      <option value="baja">Baja</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-black text-slate-700">Mensaje</label>
+                  <textarea
+                    rows={3}
+                    value={avisoMensaje}
+                    onChange={(e) => setAvisoMensaje(e.target.value)}
+                    placeholder="Describe el aviso de última hora..."
+                    className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs text-slate-950"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-black text-slate-700">Fecha expiración (opcional)</label>
+                    <input
+                      type="date"
+                      value={avisoFechaExpiracion}
+                      onChange={(e) => setAvisoFechaExpiracion(e.target.value)}
+                      className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    className={`w-auto bg-slate-950 hover:bg-slate-800 text-amber-400 font-black px-4 py-2 rounded-xl border-2 border-slate-950 transition`}
+                  >
+                    {editingAvisoId ? 'Guardar cambios' : 'Publicar aviso'}
+                  </button>
+                  {editingAvisoId && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAvisoTitulo('');
+                        setAvisoMensaje('');
+                        setAvisoPrioridad('alta');
+                        setAvisoFechaExpiracion('');
+                        setEditingAvisoId(null);
+                      }}
+                      className="w-auto bg-white hover:bg-amber-50 text-slate-950 font-black px-4 py-2 rounded-xl border-2 border-slate-950 transition"
+                    >
+                      Cancelar
+                    </button>
+                  )}
+                </div>
+              </form>
+            </div>
+
+            {/* LISTADO DE AVISOS ACTIVOS */}
+            <div className="bg-white border-2 border-slate-950 rounded-2xl p-4 space-y-2">
+              <h3 className="text-xs font-black uppercase tracking-wider text-slate-950 flex items-center gap-1.5">
+                <ClipboardList className="w-4 h-4" />
+                <span>Avisos activos</span>
+              </h3>
+
+              {avisos.length === 0 ? (
+                <div className="bg-white border-2 border-dashed border-slate-950 rounded-2xl p-8 text-center text-xs font-semibold text-slate-600">
+                  No hay avisos de última hora activos.
+                </div>
+              ) : (
+                avisos.map((a) => (
+                  <div key={a.id} className="border-2 border-slate-950 rounded-xl p-3 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`px-2 py-0.5 rounded text-[10px] font-black border ${
+                            a.prioridad === 'alta'
+                              ? 'bg-rose-100 text-rose-800 border-rose-300'
+                              : a.prioridad === 'media'
+                              ? 'bg-amber-100 text-amber-800 border-amber-300'
+                              : 'bg-blue-100 text-blue-800 border-blue-300'
+                          }`}
+                        >
+                          {a.prioridad.toUpperCase()}
+                        </span>
+                        <span className="text-[10px] font-black text-slate-600">
+                          Por {a.creado_por}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAvisoTitulo(a.titulo);
+                            setAvisoMensaje(a.mensaje);
+                            setAvisoPrioridad(a.prioridad);
+                            setAvisoFechaExpiracion(a.fecha_expiracion || '');
+                            setEditingAvisoId(a.id);
+                          }}
+                          className="text-[10px] font-black px-2 py-1 rounded-lg bg-amber-300 text-slate-950 border-2 border-slate-950 hover:bg-amber-400"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => cerrarAviso(a)}
+                          className="text-slate-950 hover:bg-rose-400 p-1.5 rounded-lg border border-slate-950 bg-rose-100"
+                          title="Cerrar aviso"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                    <p className="text-sm font-black text-slate-950">{a.titulo}</p>
+                    <p className="text-xs font-medium text-slate-700 mt-0.5">{a.mensaje}</p>
+                    {a.fecha_expiracion && (
+                      <p className="text-[10px] font-black text-slate-500 mt-0.5">
+                        Vence: {a.fecha_expiracion}
+                      </p>
+                    )}
+                    <p className="text-[11px] font-semibold text-slate-600 mt-1">
+                      Creado: {new Date(a.creado_en).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
                 ))
