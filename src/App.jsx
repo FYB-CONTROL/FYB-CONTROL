@@ -977,6 +977,8 @@ export default function App() {
       setCambioHoraSal2('');
       setCambioObs('');
       setEditingCambioId(null);
+    } else if (error) {
+      alert(`Error al registrar: ${error.message}`);
     }
   }
 
