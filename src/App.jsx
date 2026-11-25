@@ -124,6 +124,19 @@ export default function App() {
   const [roomRequests, setRoomRequests] = useState([]);
   const [logs, setLogs] = useState([]);
 
+  // CAMBIOS DE TURNO
+  const [cambiosTurno, setCambiosTurno] = useState([]);
+  const [cambioEmp1, setCambioEmp1] = useState('');
+  const [cambioEmp2, setCambioEmp2] = useState('');
+  const [cambioFecha1, setCambioFecha1] = useState('');
+  const [cambioHoraEnt1, setCambioHoraEnt1] = useState('');
+  const [cambioHoraSal1, setCambioHoraSal1] = useState('');
+  const [cambioFecha2, setCambioFecha2] = useState('');
+  const [cambioHoraEnt2, setCambioHoraEnt2] = useState('');
+  const [cambioHoraSal2, setCambioHoraSal2] = useState('');
+  const [cambioObs, setCambioObs] = useState('');
+  const [editingCambioId, setEditingCambioId] = useState(null);
+
   // Relevo
   const [handoverType, setHandoverType] = useState('relevo');
   const [handoverPriority, setHandoverPriority] = useState('normal');
@@ -261,9 +274,19 @@ export default function App() {
     setLogs(logsRes.data || []);
   }
 
+  async function loadCambiosTurno() {
+    const { data } = await supabase
+      .from('cambios_turno')
+      .select('*')
+      .order('creado_en', { ascending: false });
+
+    setCambiosTurno(data || []);
+  }
+
   useEffect(() => {
     if (!session) return;
     loadAllData();
+    loadCambiosTurno();
 
     const channel = supabase
       .channel('h10-fyb-sync-v9')
@@ -275,6 +298,7 @@ export default function App() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'incidences' }, () => loadAllData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'room_requests' }, () => loadAllData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'audit_logs' }, () => loadAllData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'cambios_turno' }, () => loadCambiosTurno())
       .subscribe();
 
     return () => {
@@ -914,6 +938,97 @@ export default function App() {
     }
   }
 
+  // CAMBIOS DE TURNO
+  async function handleAddCambioTurno(e) {
+    e.preventDefault();
+    if (!cambioEmp1.trim() || !cambioEmp2.trim() || !cambioFecha1 || !cambioHoraEnt1 || !cambioHoraSal1 || !cambioFecha2 || !cambioHoraEnt2 || !cambioHoraSal2) return;
+
+    const actor = profileName || session.user.email;
+
+    const { data, error } = await supabase
+      .from('cambios_turno')
+      .insert([
+        {
+          empleado_1: cambioEmp1.trim(),
+          empleado_2: cambioEmp2.trim(),
+          fecha_turno_1: cambioFecha1,
+          hora_entrada_1: cambioHoraEnt1,
+          hora_salida_1: cambioHoraSal1,
+          fecha_turno_2: cambioFecha2,
+          hora_entrada_2: cambioHoraEnt2,
+          hora_salida_2: cambioHoraSal2,
+          observaciones: cambioObs.trim() || null,
+          creado_por: actor,
+        },
+      ])
+      .select()
+      .single();
+
+    if (!error && data) {
+      setCambiosTurno((prev) => [data, ...prev]);
+      await addLog('Registró cambio de turno', `${cambioEmp1.trim()} ↔ ${cambioEmp2.trim()}`);
+      setCambioEmp1('');
+      setCambioEmp2('');
+      setCambioFecha1('');
+      setCambioHoraEnt1('');
+      setCambioHoraSal1('');
+      setCambioFecha2('');
+      setCambioHoraEnt2('');
+      setCambioHoraSal2('');
+      setCambioObs('');
+      setEditingCambioId(null);
+    }
+  }
+
+  async function handleEditCambioTurno(e) {
+    e.preventDefault();
+    if (!editingCambioId) return;
+    if (!cambioEmp1.trim() || !cambioEmp2.trim() || !cambioFecha1 || !cambioHoraEnt1 || !cambioHoraSal1 || !cambioFecha2 || !cambioHoraEnt2 || !cambioHoraSal2) return;
+
+    const actor = profileName || session.user.email;
+
+    const { error } = await supabase
+      .from('cambios_turno')
+      .update({
+        empleado_1: cambioEmp1.trim(),
+        empleado_2: cambioEmp2.trim(),
+        fecha_turno_1: cambioFecha1,
+        hora_entrada_1: cambioHoraEnt1,
+        hora_salida_1: cambioHoraSal1,
+        fecha_turno_2: cambioFecha2,
+        hora_entrada_2: cambioHoraEnt2,
+        hora_salida_2: cambioHoraSal2,
+        observaciones: cambioObs.trim() || null,
+      })
+      .eq('id', editingCambioId);
+
+    if (!error) {
+      await loadCambiosTurno();
+      await addLog('Editó cambio de turno', `${cambioEmp1.trim()} ↔ ${cambioEmp2.trim()}`);
+      setCambioEmp1('');
+      setCambioEmp2('');
+      setCambioFecha1('');
+      setCambioHoraEnt1('');
+      setCambioHoraSal1('');
+      setCambioFecha2('');
+      setCambioHoraEnt2('');
+      setCambioHoraSal2('');
+      setCambioObs('');
+      setEditingCambioId(null);
+    }
+  }
+
+  async function deleteCambioTurno(item) {
+    setCambiosTurno((prev) => prev.filter((c) => c.id !== item.id));
+    const { error } = await supabase.from('cambios_turno').delete().eq('id', item.id);
+    if (error) {
+      alert(`No se pudo borrar: ${error.message}`);
+      await loadCambiosTurno();
+    } else {
+      await addLog('Eliminó cambio de turno', `${item.empleado_1} ↔ ${item.empleado_2}`);
+    }
+  }
+
   if (loadingAuth) {
     return (
       <div className="min-h-screen bg-white text-slate-900 flex items-center justify-center text-sm">
@@ -1474,6 +1589,18 @@ export default function App() {
           >
             <CalendarDays className="w-4 h-4" />
             <span>Calendario</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('cambiosTurno')}
+            className={`flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-xl text-[10px] font-black transition ${
+              activeTab === 'cambiosTurno'
+                ? 'bg-slate-950 text-amber-400'
+                : 'bg-white text-slate-950 border border-slate-900 hover:bg-amber-300'
+            }`}
+          >
+            <History className="w-4 h-4" />
+            <span>Cambios Turno</span>
           </button>
         </div>
 
@@ -3128,6 +3255,229 @@ export default function App() {
                   ))
                 )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* CAMBIOS DE TURNO */}
+        {activeTab === 'cambiosTurno' && (
+          <div className="space-y-4">
+            <div className="bg-amber-50 border-2 border-slate-950 rounded-2xl p-4 space-y-3">
+              <h2 className="text-xs font-black uppercase tracking-wider text-slate-950 flex items-center gap-2">
+                <History className="w-4 h-4" />
+                <span>{editingCambioId ? 'Editar cambio de turno' : 'Nuevo cambio de turno'}</span>
+              </h2>
+
+              <form onSubmit={editingCambioId ? handleEditCambioTurno : handleAddCambioTurno} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-black text-slate-700">Empleado que cambia</label>
+                  <input
+                    type="text"
+                    value={cambioEmp1}
+                    onChange={(e) => setCambioEmp1(e.target.value)}
+                    placeholder="Ej. Juan"
+                    className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-black text-slate-700">Empleado con quien intercambia</label>
+                  <input
+                    type="text"
+                    value={cambioEmp2}
+                    onChange={(e) => setCambioEmp2(e.target.value)}
+                    placeholder="Ej. Pedro"
+                    className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-black text-slate-700">Fecha turno 1</label>
+                  <input
+                    type="date"
+                    value={cambioFecha1}
+                    onChange={(e) => setCambioFecha1(e.target.value)}
+                    className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-black text-slate-700">Entrada turno 1</label>
+                  <input
+                    type="time"
+                    value={cambioHoraEnt1}
+                    onChange={(e) => setCambioHoraEnt1(e.target.value)}
+                    className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-black text-slate-700">Salida turno 1</label>
+                  <input
+                    type="time"
+                    value={cambioHoraSal1}
+                    onChange={(e) => setCambioHoraSal1(e.target.value)}
+                    className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-black text-slate-700">Fecha turno 2</label>
+                  <input
+                    type="date"
+                    value={cambioFecha2}
+                    onChange={(e) => setCambioFecha2(e.target.value)}
+                    className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-black text-slate-700">Entrada turno 2</label>
+                  <input
+                    type="time"
+                    value={cambioHoraEnt2}
+                    onChange={(e) => setCambioHoraEnt2(e.target.value)}
+                    className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[10px] font-black text-slate-700">Salida turno 2</label>
+                  <input
+                    type="time"
+                    value={cambioHoraSal2}
+                    onChange={(e) => setCambioHoraSal2(e.target.value)}
+                    className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs font-bold text-slate-950"
+                  />
+                </div>
+                <div className="flex flex-col gap-1 sm:col-span-2">
+                  <label className="text-[10px] font-black text-slate-700">Observaciones</label>
+                  <input
+                    type="text"
+                    value={cambioObs}
+                    onChange={(e) => setCambioObs(e.target.value)}
+                    placeholder="Notas opcionales..."
+                    className="bg-white border-2 border-slate-950 rounded-xl px-3 py-2 text-xs text-slate-950"
+                  />
+                </div>
+                <div className="flex flex-col gap-1 sm:col-span-2">
+                  <button
+                    type="submit"
+                    className={`w-auto bg-slate-950 hover:bg-slate-800 text-amber-400 font-black px-4 py-2 rounded-xl border-2 border-slate-950 transition`}
+                  >
+                    {editingCambioId ? 'Guardar cambios' : 'Registrar intercambio'}
+                  </button>
+                  {editingCambioId && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCambioEmp1('');
+                        setCambioEmp2('');
+                        setCambioFecha1('');
+                        setCambioHoraEnt1('');
+                        setCambioHoraSal1('');
+                        setCambioFecha2('');
+                        setCambioHoraEnt2('');
+                        setCambioHoraSal2('');
+                        setCambioObs('');
+                        setEditingCambioId(null);
+                      }}
+                      className="w-auto bg-white hover:bg-amber-50 text-slate-950 font-black px-4 py-2 rounded-xl border-2 border-slate-950 transition"
+                    >
+                      Cancelar
+                    </button>
+                  )}
+                </div>
+              </form>
+            </div>
+
+            <div className="bg-white border-2 border-slate-950 rounded-2xl p-4 space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-xs font-black uppercase tracking-wider text-slate-950 flex items-center gap-1.5">
+                  <CalendarClock className="w-4 h-4" />
+                  <span>Historial de cambios de turno</span>
+                </h3>
+                <input
+                  type="date"
+                  placeholder="Filtrar por fecha"
+                  className="bg-white border-2 border-slate-950 rounded-xl px-3 py-1.5 text-xs text-slate-950"
+                />
+              </div>
+
+              {cambiosTurno.length === 0 ? (
+                <div className="bg-white border-2 border-dashed border-slate-950 rounded-2xl p-8 text-center text-xs font-semibold text-slate-600">
+                  No hay cambios de turno registrados.
+                </div>
+              ) : (
+                cambiosTurno.map((c) => (
+                  <div
+                    key={c.id}
+                    className="border-2 border-slate-950 rounded-xl p-3.5 space-y-2"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="text-[10px] font-black px-2 py-0.5 rounded bg-amber-400 text-slate-950 border border-slate-950">
+                          {c.empleado_1}
+                        </span>
+                        <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-slate-950 text-amber-400">
+                          ↔
+                        </span>
+                        <span className="text-[10px] font-black px-2 py-0.5 rounded bg-amber-400 text-slate-950 border border-slate-950">
+                          {c.empleado_2}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCambioEmp1(c.empleado_1);
+                            setCambioEmp2(c.empleado_2);
+                            setCambioFecha1(c.fecha_turno_1);
+                            setCambioHoraEnt1(c.hora_entrada_1);
+                            setCambioHoraSal1(c.hora_salida_1);
+                            setCambioFecha2(c.fecha_turno_2);
+                            setCambioHoraEnt2(c.hora_entrada_2);
+                            setCambioHoraSal2(c.hora_salida_2);
+                            setCambioObs(c.observaciones || '');
+                            setEditingCambioId(c.id);
+                          }}
+                          className="text-[10px] font-black px-2 py-1 rounded-lg bg-amber-300 text-slate-950 border-2 border-slate-950 hover:bg-amber-400"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => deleteCambioTurno(c)}
+                          className="text-slate-950 hover:bg-amber-400 p-1.5 rounded-lg border border-slate-950 bg-amber-100"
+                          title="Borrar cambio"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                      <div className="bg-slate-50 border border-slate-950 rounded-lg p-2 space-y-1">
+                        <p className="text-[10px] font-bold text-slate-700">Turno 1</p>
+                        <p className="text-sm font-black text-slate-950">{c.fecha_turno_1}</p>
+                        <p className="text-[11px] font-semibold text-slate-600">
+                          {c.hora_entrada_1} → {c.hora_salida_1}
+                        </p>
+                      </div>
+                      <div className="bg-slate-50 border border-slate-950 rounded-lg p-2 space-y-1">
+                        <p className="text-[10px] font-bold text-slate-700">Turno 2</p>
+                        <p className="text-sm font-black text-slate-950">{c.fecha_turno_2}</p>
+                        <p className="text-[11px] font-semibold text-slate-600">
+                          {c.hora_entrada_2} → {c.hora_salida_2}
+                        </p>
+                      </div>
+                    </div>
+
+                    {c.observaciones && (
+                      <p className="text-xs font-medium text-slate-700 bg-amber-50 border border-slate-950 rounded-lg p-2">
+                        {c.observaciones}
+                      </p>
+                    )}
+
+                    <p className="text-[11px] font-semibold text-slate-600">
+                      Por {c.creado_por} · {new Date(c.creado_en).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         )}
